@@ -1,0 +1,6 @@
+@CulturalShare.Auth_HostAddress = http://localhost:5230
+
+GET {{CulturalShare.Auth_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
