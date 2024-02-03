@@ -47,12 +47,17 @@ public class AuthService : IAuthService
     public async Task<AccessKeyViewModel> GetAccessTokenAsync(LoginRequest request)
     {
         var user = await _authRepository.GetUserByEmailAsync(request.Email);
-        // TODO: Validate password
 
-        if(user == null)
+        if (user == null)
         {
             _logger.LogError($"{nameof(GetAccessTokenAsync)} request. User with email = {request.Email} doesn't exist!");
             throw new RowNotInTableException($"User with email = {request.Email} doesn't exist!");
+        }
+
+        if (!_passwordService.VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt))
+        {
+            _logger.LogError($"{nameof(GetAccessTokenAsync)} request. User with email = {request.Email} didin't provide correct password!");
+            throw new Exception("Password is incorrect!");
         }
 
         return CreateAccessKey(user, DateTime.Now.AddDays(_tokenConfiguration.DaysUntilExpire), _tokenConfiguration.AuthorizationKey);
