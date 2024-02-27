@@ -3,37 +3,21 @@ using CulturalShare.Auth.API.DependencyInjection;
 using CulturalShare.Auth.Services;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.InstallServices(typeof(IServiceInstaller).Assembly);
+var logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .CreateLogger();
+
+builder.InstallServices(logger, typeof(IServiceInstaller).Assembly);
 var app = builder.Build();
 
-// Seed database.
-//using (var scope = app.Services.CreateScope())
-//{
-//    try
-//    {
-//        var db = scope.ServiceProvider.GetRequiredService<AuthDBContext>();
-//        for (int i = 0; i < 1; i++)
-//        {
-//            db.Users.Add(new UserEntity()
-//            {
-//                Email = "User@gmail.com",
-//                FirstName = "FirstName",
-//                LastName = "LastName",
-//                PasswordHash = new byte[] {1,2,34,3,4,5,6,},
-//                PasswordSalt = new byte[] {1,2,3,4,5,6,},
-//            });
-
-//            db.SaveChanges();
-//        }
-//    }
-//    catch (Exception ex)
-//    {
-//        Console.WriteLine(ex.Message);
-//        throw ex;
-//    }
-//}
+if (app.Environment.IsEnvironment("Test"))
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -45,4 +29,13 @@ app.MapHealthChecks("/_health", new HealthCheckOptions()
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 
+if (app.Environment.IsEnvironment("Test"))
+{
+    app.MapControllers();
+}
+
+app.UseSerilogRequestLogging();
+
+logger.Information($"Env: {Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")} Running App...");
 app.Run();
+logger.Information("App finished.");
