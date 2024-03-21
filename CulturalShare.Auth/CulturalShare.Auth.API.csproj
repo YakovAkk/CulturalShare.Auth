@@ -7,14 +7,30 @@
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
 
+	<PropertyGroup>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);1591</NoWarn>
+		<UserSecretsId>1071abf9-0651-4199-92dd-64c464274c0a</UserSecretsId>
+		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="8.0.0" />
 		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="8.0.0" />
-		<PackageReference Include="CulturalShare.Protos" Version="8.0.0.1" />
-		<PackageReference Include="Grpc.AspNetCore" Version="2.60.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.1" />
-		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.1" />
-		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
+		<PackageReference Include="CulturalShare.Common.Helper" Version="8.0.8" />
+		<PackageReference Include="CulturalShare.Protos" Version="8.0.5" />
+		<PackageReference Include="Grpc.AspNetCore" Version="2.61.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.3" />
+		<PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" Version="8.0.3" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.3" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.2" />
+		<PackageReference Include="Serilog" Version="3.1.1" />
+		<PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
+		<PackageReference Include="Serilog.Enrichers.CorrelationId" Version="3.0.1" />
+		<PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
+		<PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
+		<PackageReference Include="Serilog.Sinks.Graylog" Version="3.1.1" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
 	</ItemGroup>
 

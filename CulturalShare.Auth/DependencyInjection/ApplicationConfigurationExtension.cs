@@ -1,11 +1,12 @@
 ﻿using CulturalShare.Auth.API.Configuration.Base;
+using Serilog.Core;
 using System.Reflection;
 
 namespace CulturalShare.Auth.API.DependencyInjection;
 
 public static class ApplicationConfigurationExtension
 {
-    public static WebApplicationBuilder InstallServices(this WebApplicationBuilder builder, params Assembly[] assemblies)
+    public static WebApplicationBuilder InstallServices(this WebApplicationBuilder builder, Logger logger, params Assembly[] assemblies)
     {
         var serviceInstallers = assemblies.SelectMany(x => x.DefinedTypes)
               .Where(x => IsAssignableToType<IServiceInstaller>(x))
@@ -14,7 +15,7 @@ public static class ApplicationConfigurationExtension
 
         foreach (var serviceInstaller in serviceInstallers)
         {
-            serviceInstaller.Install(builder);
+            serviceInstaller.Install(builder, logger);
         }
 
         return builder;

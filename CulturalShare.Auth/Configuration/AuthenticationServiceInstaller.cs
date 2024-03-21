@@ -2,12 +2,13 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Serilog.Core;
 
 namespace CulturalShare.Auth.API.Configuration;
 
 public class AuthenticationServiceInstaller : IServiceInstaller
 {
-    public void Install(WebApplicationBuilder builder)
+    public void Install(WebApplicationBuilder builder, Logger logger)
     {
         builder.Services.AddAuthentication(options =>
         {
@@ -30,6 +31,8 @@ public class AuthenticationServiceInstaller : IServiceInstaller
             });
 
         builder.Services.AddAuthorization();
+
+        logger.Information($"{nameof(AuthenticationServiceInstaller)} installed.");
     }
 }
 
