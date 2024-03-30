@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CulturalShare.Common.DB" Version="8.0.2" />
     <PackageReference Include="CulturalShare.Repositories" Version="8.0.1" />
   </ItemGroup>
 

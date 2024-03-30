@@ -3,23 +3,21 @@ using CulturalShare.Common.Helper.Constants;
 using Serilog;
 using Serilog.Core;
 
+namespace CulturalShare.Auth.API.Configuration;
 
-namespace CulturalShare.Auth.API.Configuration
+public class LoggingServiceInstaller : IServiceInstaller
 {
-    public class LoggingServiceInstaller : IServiceInstaller
+    public void Install(WebApplicationBuilder builder, Logger logger)
     {
-        public void Install(WebApplicationBuilder builder, Logger logger)
+        builder.Host.UseSerilog((context, config) =>
         {
-            builder.Host.UseSerilog((context, config) =>
-            {
-                var configuration = builder.Configuration;
+            var configuration = builder.Configuration;
 
-                config.Enrich.WithCorrelationIdHeader(LoggingConsts.CorrelationIdHeaderName);
-                config.Enrich.WithProperty(LoggingConsts.Environment, Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
-                config.ReadFrom.Configuration(configuration);
-            });
+            config.Enrich.WithCorrelationIdHeader(LoggingConsts.CorrelationIdHeaderName);
+            config.Enrich.WithProperty(LoggingConsts.Environment, Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
+            config.ReadFrom.Configuration(configuration);
+        });
 
-            logger.Information($"{nameof(LoggingServiceInstaller)} installed.");
-        }
+        logger.Information($"{nameof(LoggingServiceInstaller)} installed.");
     }
 }

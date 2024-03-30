@@ -1,5 +1,6 @@
 ﻿using CulturalShare.Auth.API.Configuration.Base;
 using CulturalShare.Auth.Domain.Context;
+using CulturalShare.Common.Helper.EnvHelpers;
 using Microsoft.EntityFrameworkCore;
 using Serilog.Core;
 
@@ -9,26 +10,13 @@ public class DatabaseServiceInstaller : IServiceInstaller
 {
     public void Install(WebApplicationBuilder builder, Logger logger)
     {
-        var docker = builder.Configuration["DOTNET_RUNNING_IN_CONTAINER"];
+        var sortOutCredentialsHelper = new SortOutCredentialsHelper(builder.Configuration);
 
-        if (docker != null && docker.ToLower() == "true")
-        {
-            var connectionString = builder.Configuration.GetConnectionString("PostgresDBDocker");
+        builder.Services.AddDbContextPool<AuthDBContext>(options =>
+             options.UseNpgsql(sortOutCredentialsHelper.DefaultConnectionString));
 
-            logger.Information(connectionString);
+        builder.Services.AddTransient<DbContext, AuthDBContext>();
 
-            builder.Services.AddDbContext<AuthDBContext>(options => options.UseNpgsql(connectionString));
-        }
-        else
-        {
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-            logger.Information(connectionString);
-
-            builder.Services.AddDbContextPool<AuthDBContext>(options =>
-                options.UseNpgsql(connectionString));
-
-            builder.Services.AddTransient<DbContext, AuthDBContext>();
-        }
+        logger.Information($"{nameof(DatabaseServiceInstaller)} installed.");
     }
 }
