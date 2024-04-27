@@ -13,7 +13,7 @@ public class DatabaseServiceInstaller : IServiceInstaller
         var sortOutCredentialsHelper = new SortOutCredentialsHelper(builder.Configuration);
 
         builder.Services.AddDbContextPool<AuthDBContext>(options =>
-             options.UseNpgsql(sortOutCredentialsHelper.DefaultConnectionString));
+             options.UseNpgsql(sortOutCredentialsHelper.GetPostgresConnectionString()));
 
         builder.Services.AddTransient<DbContext, AuthDBContext>();
 
