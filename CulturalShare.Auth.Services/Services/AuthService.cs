@@ -20,7 +20,12 @@ public class AuthService : IAuthService
     private readonly ITokenService _tokenService;
     private readonly TokenConfiguration _tokenConfiguration;
 
-    public AuthService(IPasswordService passwordService, IAuthRepository passwordRepository, ILogger<AuthService> logger, ITokenService tokenService, TokenConfiguration tokenConfiguration)
+    public AuthService(
+        IPasswordService passwordService, 
+        IAuthRepository passwordRepository, 
+        ILogger<AuthService> logger, 
+        ITokenService tokenService, 
+        TokenConfiguration tokenConfiguration)
     {
         _passwordService = passwordService;
         _authRepository = passwordRepository;
@@ -31,7 +36,12 @@ public class AuthService : IAuthService
 
     public async Task<int> CreateUserAsync(RegistrationRequest request)
     {
-        _logger.LogDebug($"{nameof(CreateUserAsync)} request. {JsonConvert.SerializeObject(request)}");
+        _logger.LogDebug($"{nameof(CreateUserAsync)} request. User = {request.FirstName} {request.LastName} registered");
+
+        if (request.Password != request.ConfirmPassword)
+        {
+            throw new Exception("Password is to be equal to ConfirmPassword!");
+        }
 
         _passwordService.CreatePasswordHash(request.Password, out var passwordHash, out var passwordSalt);
 
@@ -51,8 +61,6 @@ public class AuthService : IAuthService
 
     public async Task<AccessKeyViewModel> GetAccessTokenAsync(LoginRequest request)
     {
-        _logger.LogDebug($"{nameof(GetAccessTokenAsync)} request. {JsonConvert.SerializeObject(request)}");
-
         var user = await _authRepository
             .GetAll()
             .FirstOrDefaultAsync(x => x.Email == request.Email);
