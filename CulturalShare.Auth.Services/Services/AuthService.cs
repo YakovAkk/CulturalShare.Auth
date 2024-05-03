@@ -4,7 +4,9 @@ using CulturalShare.Auth.Repositories.Repositories.Base;
 using CulturalShare.Auth.Services.Configuration;
 using CulturalShare.Auth.Services.Model;
 using CulturalShare.Auth.Services.Services.Base;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 
@@ -29,6 +31,8 @@ public class AuthService : IAuthService
 
     public async Task<int> CreateUserAsync(RegistrationRequest request)
     {
+        _logger.LogDebug($"{nameof(CreateUserAsync)} request. {JsonConvert.SerializeObject(request)}");
+
         _passwordService.CreatePasswordHash(request.Password, out var passwordHash, out var passwordSalt);
 
         var user = new UserEntity()
@@ -40,13 +44,18 @@ public class AuthService : IAuthService
             FirstName = request.FirstName,
         };
 
-        var result = await _authRepository.CreateUserAsync(user);
-        return result;
+        var result = _authRepository.Add(user);
+        await _authRepository.SaveChangesAsync();
+        return result.Id;
     }
 
     public async Task<AccessKeyViewModel> GetAccessTokenAsync(LoginRequest request)
     {
-        var user = await _authRepository.GetUserByEmailAsync(request.Email);
+        _logger.LogDebug($"{nameof(GetAccessTokenAsync)} request. {JsonConvert.SerializeObject(request)}");
+
+        var user = await _authRepository
+            .GetAll()
+            .FirstOrDefaultAsync(x => x.Email == request.Email);
 
         if (user == null)
         {
@@ -65,6 +74,8 @@ public class AuthService : IAuthService
 
     public AccessKeyViewModel GetOneTimeTokenAsync(GetOneTimeTokenRequest request)
     {
+        _logger.LogDebug($"{nameof(GetOneTimeTokenAsync)} request. {JsonConvert.SerializeObject(request)}");
+
         var user = new UserEntity()
         {
             Id = request.UserId,
@@ -77,6 +88,8 @@ public class AuthService : IAuthService
     #region Private
     private AccessKeyViewModel CreateAccessKey(UserEntity user, DateTime expiresAt, string authorizationKey)
     {
+        _logger.LogDebug($"{nameof(CreateAccessKey)} request. User Id = {user.Id}");
+
         var refreshToken = _tokenService.CreateRefreshToken();
         var accessToken = _tokenService.CreateAccessToken(user, expiresAt, authorizationKey);
         var token = new JwtSecurityTokenHandler().WriteToken(accessToken);

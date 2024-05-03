@@ -1,11 +1,8 @@
-﻿
-using CulturalShare.Auth.Domain.Entities;
+﻿using CulturalShare.Auth.Domain.Entities;
+using Monto.Repositories;
 
 namespace CulturalShare.Auth.Repositories.Repositories.Base;
 
-public interface IAuthRepository
+public interface IAuthRepository : IRepository<UserEntity>
 {
-    Task<int> CreateUserAsync(UserEntity user);
-    Task<UserEntity> GetUserByEmailAsync(string email);
-    Task<UserEntity> GetUserByIdAsync(int id);
 }
