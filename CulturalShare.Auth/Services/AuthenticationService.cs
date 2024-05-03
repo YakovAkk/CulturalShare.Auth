@@ -17,8 +17,6 @@ public class AuthenticationService : Authentication.AuthenticationBase
 
     public override async Task<RegistrationReply> Registration(RegistrationRequest request, ServerCallContext context)
     {
-        _log.LogDebug($"{nameof(Registration)} request. Body = {JsonConvert.SerializeObject(request)}");
-
         var id = await _authService.CreateUserAsync(request);
 
         return new RegistrationReply() 
@@ -29,8 +27,6 @@ public class AuthenticationService : Authentication.AuthenticationBase
 
     public override async Task<AccessTokenReply> Login(LoginRequest request, ServerCallContext context)
     {
-        _log.LogDebug($"{nameof(Login)} request. Body = {JsonConvert.SerializeObject(request)}");
-
         var accessToken = await _authService.GetAccessTokenAsync(request);
 
         TimeSpan remainingTime = accessToken.ExpireDate - DateTime.Now;
@@ -45,8 +41,6 @@ public class AuthenticationService : Authentication.AuthenticationBase
 
     public override async Task<AccessTokenReply> GetOneTimeToken(GetOneTimeTokenRequest request, ServerCallContext context)
     {
-        _log.LogDebug($"{nameof(GetOneTimeToken)} request. Body = {JsonConvert.SerializeObject(request)}");
-
         var accessToken = _authService.GetOneTimeTokenAsync(request);
 
         TimeSpan remainingTime = accessToken.ExpireDate - DateTime.Now;
@@ -61,8 +55,6 @@ public class AuthenticationService : Authentication.AuthenticationBase
 
     public override Task<AccessTokenReply> RefreshToken(RefreshTokenRequest request, ServerCallContext context)
     {
-        _log.LogDebug($"{nameof(RefreshToken)} request. Body = {JsonConvert.SerializeObject(request)}");
-
         throw new RpcException(new Status(StatusCode.Unavailable, "Not implemented"));
     }
 }

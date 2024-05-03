@@ -20,8 +20,6 @@ public class AuthController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateUserControllerActionAsync([FromBody] RegistrationRequest request)
     {
-        _log.LogInformation($"{nameof(CreateUserControllerActionAsync)} request. Body = {JsonConvert.SerializeObject(request)}");
-
         var userId = await _authService.CreateUserAsync(request);
         return Ok(userId);
     }
