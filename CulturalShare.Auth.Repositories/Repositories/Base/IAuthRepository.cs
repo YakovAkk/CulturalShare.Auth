@@ -5,4 +5,5 @@ namespace CulturalShare.Auth.Repositories.Repositories.Base;
 
 public interface IAuthRepository : IRepository<UserEntity>
 {
+
 }
