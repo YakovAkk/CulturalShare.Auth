@@ -4,10 +4,10 @@ using CulturalShare.Auth.Repositories.Repositories.Base;
 using CulturalShare.Auth.Services.Configuration;
 using CulturalShare.Auth.Services.Model;
 using CulturalShare.Auth.Services.Services.Base;
+using CultureShare.Foundation.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace CulturalShare.Auth.Services.Services;
@@ -40,7 +40,7 @@ public class AuthService : IAuthService
 
         if (request.Password != request.ConfirmPassword)
         {
-            throw new Exception("Password is to be equal to ConfirmPassword!");
+            throw new BadRequestException("Password is to be equal to ConfirmPassword!");
         }
 
         _passwordService.CreatePasswordHash(request.Password, out var passwordHash, out var passwordSalt);
@@ -68,13 +68,13 @@ public class AuthService : IAuthService
         if (user == null)
         {
             _logger.LogError($"{nameof(GetAccessTokenAsync)} request. User with email = {request.Email} doesn't exist!");
-            throw new RowNotInTableException($"User with email = {request.Email} doesn't exist!");
+            throw new BadRequestException($"User with email = {request.Email} doesn't exist!");
         }
 
         if (!_passwordService.VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt))
         {
-            _logger.LogError($"{nameof(GetAccessTokenAsync)} request. User with email = {request.Email} didin't provide correct password!");
-            throw new Exception("Password is incorrect!");
+            _logger.LogError($"{nameof(GetAccessTokenAsync)} request. User with email = {request.Email} didn't provide correct password!");
+            throw new BadRequestException("Password is incorrect!");
         }
 
         return CreateAccessKey(user, DateTime.Now.AddDays(_tokenConfiguration.DaysUntilExpire), _tokenConfiguration.AuthorizationKey);
