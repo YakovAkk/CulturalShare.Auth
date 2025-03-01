@@ -7,11 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CulturalShare.Repositories" Version="8.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\CulturalShare.Auth.Domain\CulturalShare.Auth.Domain.csproj" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="8.0.2" />
   </ItemGroup>
 
 </Project>

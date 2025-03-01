@@ -7,18 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CulturalShare.Common.Helper" Version="8.0.24" />
-    <PackageReference Include="CulturalShare.Protos" Version="8.0.5" />
+    <PackageReference Include="CulturalShare.Common.Helper" Version="8.0.25" />
+    <PackageReference Include="CulturalShare.Protos" Version="8.0.8" />
     <PackageReference Include="CultureShare.Foundation.Exceptions" Version="8.0.1" />
-
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.5.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CulturalShare.Auth.Domain\CulturalShare.Auth.Domain.csproj" />
-    <ProjectReference Include="..\CulturalShare.Auth.Repositories\CulturalShare.Auth.Repositories.csproj" />
+    <ProjectReference Include="..\DomainEntity\DomainEntity.csproj" />
+    <ProjectReference Include="..\Repository\Repository.csproj" />
   </ItemGroup>
 
 </Project>
