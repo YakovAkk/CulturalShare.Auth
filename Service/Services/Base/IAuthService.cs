@@ -5,7 +5,7 @@ namespace CulturalShare.Auth.Services.Services.Base;
 
 public interface IAuthService
 {
-    Task<int> CreateUserAsync(RegistrationRequest request);
+    Task<int> CreateUserAsync(CreateUserRequest request);
     Task<AccessKeyViewModel> GetAccessTokenAsync(LoginRequest request);
     AccessKeyViewModel GetOneTimeTokenAsync(GetOneTimeTokenRequest request);
 }

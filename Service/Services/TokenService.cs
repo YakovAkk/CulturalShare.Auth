@@ -2,6 +2,7 @@
 using CulturalShare.Auth.Services.Configuration;
 using CulturalShare.Auth.Services.Model;
 using CulturalShare.Auth.Services.Services.Base;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -12,14 +13,11 @@ namespace CulturalShare.Auth.Services.Services;
 
 public class TokenService : ITokenService
 {
-    public TokenService()
-    {
-       
-    }
     public string CreateRandomToken()
     {
         return Convert.ToHexString(RandomNumberGenerator.GetBytes(64));
     }
+
     public JwtSecurityToken CreateAccessToken(UserEntity user, DateTime expiresAt, string authorizationKey)
     {
         var claims = new List<Claim>()
@@ -27,9 +25,6 @@ public class TokenService : ITokenService
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email)
         };
-
-        var userRoles = user.Roles.Select(x => x.Role).Distinct().ToList();
-        claims.AddRange(userRoles.Select(x => new Claim(ClaimTypes.Role, x.ToString())));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authorizationKey));
 
@@ -42,12 +37,13 @@ public class TokenService : ITokenService
 
         return token;
     }
+
     public RefreshToken CreateRefreshToken()
     {
         var refreshToken = new RefreshToken()
         {
             Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.UtcNow
         };
 
         return refreshToken;

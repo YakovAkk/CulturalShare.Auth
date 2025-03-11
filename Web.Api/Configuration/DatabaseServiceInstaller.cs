@@ -12,10 +12,10 @@ public class DatabaseServiceInstaller : IServiceInstaller
     {
         var sortOutCredentialsHelper = new SortOutCredentialsHelper(builder.Configuration);
 
-        builder.Services.AddDbContextPool<AuthDBContext>(options =>
+        builder.Services.AddDbContextPool<AuthDbContext>(options =>
              options.UseNpgsql(sortOutCredentialsHelper.GetPostgresConnectionString()));
 
-        builder.Services.AddTransient<DbContext, AuthDBContext>();
+        builder.Services.AddTransient<DbContext, AuthDbContext>();
 
         logger.Information($"{nameof(DatabaseServiceInstaller)} installed.");
     }

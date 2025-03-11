@@ -11,7 +11,7 @@ public static class SeedDatabaseExtension
         {
             try
             {
-                var db = scope.ServiceProvider.GetRequiredService<AuthDBContext>();
+                var db = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
                 for (int i = 0; i < 1; i++)
                 {
                     db.Users.Add(new UserEntity()
@@ -19,8 +19,7 @@ public static class SeedDatabaseExtension
                         Email = "User@gmail.com",
                         FirstName = "FirstName",
                         LastName = "LastName",
-                        PasswordHash = new byte[] { 1, 2, 34, 3, 4, 5, 6, },
-                        PasswordSalt = new byte[] { 1, 2, 3, 4, 5, 6, },
+                        PasswordHash = "asd",
                     });
 
                     db.SaveChanges();

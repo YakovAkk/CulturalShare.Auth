@@ -5,6 +5,7 @@ using CulturalShare.Auth.Services.Configuration;
 using CulturalShare.Auth.Services.Model;
 using CulturalShare.Auth.Services.Services.Base;
 using CultureShare.Foundation.Exceptions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -19,48 +20,69 @@ public class AuthService : IAuthService
     private readonly IAuthRepository _authRepository;
     private readonly ITokenService _tokenService;
     private readonly TokenConfiguration _tokenConfiguration;
+    private readonly SignInManager<UserEntity> _signInManager;
+    private readonly UserManager<UserEntity> _userManager;
 
     public AuthService(
-        IPasswordService passwordService, 
-        IAuthRepository passwordRepository, 
-        ILogger<AuthService> logger, 
-        ITokenService tokenService, 
-        TokenConfiguration tokenConfiguration)
+        IPasswordService passwordService,
+        IAuthRepository passwordRepository,
+        ILogger<AuthService> logger,
+        ITokenService tokenService,
+        TokenConfiguration tokenConfiguration,
+        SignInManager<UserEntity> signInManager,
+        UserManager<UserEntity> userManager)
     {
         _passwordService = passwordService;
         _authRepository = passwordRepository;
         _logger = logger;
         _tokenService = tokenService;
         _tokenConfiguration = tokenConfiguration;
+        _signInManager = signInManager;
+        _userManager = userManager;
     }
 
-    public async Task<int> CreateUserAsync(RegistrationRequest request)
+    public async Task<int> CreateUserAsync(CreateUserRequest request)
     {
         _logger.LogDebug($"{nameof(CreateUserAsync)} request. User = {request.FirstName} {request.LastName} registered");
 
-        if (request.Password != request.ConfirmPassword)
+        if (!string.IsNullOrEmpty(request.Password))
         {
-            throw new BadRequestException("Password is to be equal to ConfirmPassword!");
+            throw new BadRequestException("Password must not be empty!");
         }
 
-        _passwordService.CreatePasswordHash(request.Password, out var passwordHash, out var passwordSalt);
+        var email = request.Email.Trim();
 
         var user = new UserEntity()
         {
             Email = request.Email,
-            PasswordHash = passwordHash,
-            PasswordSalt = passwordSalt,
             LastName = request.LastName,
             FirstName = request.FirstName,
+            NormalizedEmail = email.ToUpperInvariant(),
+            UserName = email,
         };
 
-        var result = _authRepository.Add(user);
-        await _authRepository.SaveChangesAsync();
-        return result.Id;
+        var result = await _userManager.CreateAsync(user);
+
+        if (!result.Succeeded)
+        {
+            throw new BadRequestException(string.Join("; ", result.Errors.Select(error => error.Description)));
+        }
+
+        await _signInManager.SignInAsync(user, false);
+
+        _logger.LogDebug($"Customer {user.Id} was created.");
+
+        return user.Id;
     }
 
     public async Task<AccessKeyViewModel> GetAccessTokenAsync(LoginRequest request)
     {
+        if (!string.IsNullOrEmpty(request.Password))
+        {
+            throw new BadRequestException("Password must not be empty!");
+        }
+
+        SignInResult result = SignInResult.Success;
         var user = await _authRepository
             .GetAll()
             .FirstOrDefaultAsync(x => x.Email == request.Email);
@@ -71,13 +93,16 @@ public class AuthService : IAuthService
             throw new BadRequestException($"User with email = {request.Email} doesn't exist!");
         }
 
-        if (!_passwordService.VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt))
+        result = await _signInManager.PasswordSignInAsync(user, request.Password, false, false);
+
+        if (result.Succeeded)
         {
-            _logger.LogError($"{nameof(GetAccessTokenAsync)} request. User with email = {request.Email} didn't provide correct password!");
-            throw new BadRequestException("Password is incorrect!");
+            _logger.LogDebug($"Customer {user.Id} was logged");
+
+            return CreateAccessKey(user, DateTime.UtcNow.AddDays(_tokenConfiguration.DaysUntilExpire), _tokenConfiguration.AuthorizationKey);
         }
 
-        return CreateAccessKey(user, DateTime.Now.AddDays(_tokenConfiguration.DaysUntilExpire), _tokenConfiguration.AuthorizationKey);
+        throw new BadRequestException($"Email or/and password is incorrect");
     }
 
     public AccessKeyViewModel GetOneTimeTokenAsync(GetOneTimeTokenRequest request)
@@ -90,7 +115,7 @@ public class AuthService : IAuthService
             Email = request.Email,
         };
 
-        return CreateAccessKey(user, DateTime.Now, _tokenConfiguration.OneTimeAuthorizationKey);
+        return CreateAccessKey(user, DateTime.UtcNow, _tokenConfiguration.OneTimeAuthorizationKey);
     }
 
     #region Private

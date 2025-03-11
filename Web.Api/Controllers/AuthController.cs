@@ -18,7 +18,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateUserControllerActionAsync([FromBody] RegistrationRequest request)
+    public async Task<IActionResult> CreateUserControllerActionAsync([FromBody] CreateUserRequest request)
     {
         var userId = await _authService.CreateUserAsync(request);
         return Ok(userId);
