@@ -11,7 +11,6 @@ public class UserEntity : BaseEntity<int>
     [MaxLength(200)]
     public string LastName { get; set; }
 
-    [EmailAddress]
     [MaxLength(200)]
     public string Email { get; set; }
 
