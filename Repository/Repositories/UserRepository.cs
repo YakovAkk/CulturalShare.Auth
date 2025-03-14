@@ -1,13 +1,13 @@
 ﻿using CulturalShare.Auth.Domain.Entities;
 using CulturalShare.Auth.Repositories.Repositories.Base;
+using CulturalShare.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Monto.Repositories;
 
 namespace CulturalShare.Auth.Repositories.Repositories;
 
-public class AuthRepository : EntityFrameworkRepository<UserEntity>, IAuthRepository
+public class UserRepository : EntityFrameworkRepository<UserEntity>, IUserRepository
 {
-    public AuthRepository(DbContext context) : base(context)
+    public UserRepository(DbContext context) : base(context)
     {
     }
 }

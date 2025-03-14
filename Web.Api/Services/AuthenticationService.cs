@@ -9,53 +9,53 @@ public class AuthenticationService : Authentication.AuthenticationBase
 {
     private readonly IAuthService _authService;
     private readonly ILogger<AuthenticationService> _logger;
+
     public AuthenticationService(IAuthService authService, ILogger<AuthenticationService> log)
     {
         _authService = authService;
         _logger = log;
     }
 
-    public override async Task<CreateUserResponse> CreateUserAsync(CreateUserRequest request, ServerCallContext context)
+    public override async Task<CreateUserResponse> CreateUser(CreateUserRequest request, ServerCallContext context)
     {
         var id = await _authService.CreateUserAsync(request);
 
         return new CreateUserResponse() 
         { 
-            Id = id,
+            Id = id
         };
     }
 
-    public override async Task<AccessTokenResponse> LoginAsync(LoginRequest request, ServerCallContext context)
+    public override async Task<SignInResponse> SignIn(SignInRequest request, ServerCallContext context)
     {
-        var accessToken = await _authService.GetAccessTokenAsync(request);
+        var accessToken = await _authService.GetSignInAsync(request);
 
-        TimeSpan remainingTime = accessToken.ExpireDate - DateTime.UtcNow;
+        TimeSpan remainingTime = accessToken.ExpireDate - DateTime.UtcNow;  
         int remainingSeconds = (int)remainingTime.TotalSeconds;
 
-        return new AccessTokenResponse()
+        return new SignInResponse()
         {
             AccessToken = accessToken.AccessToken,
-            ExpiresInSeconds = remainingSeconds
+            ExpiresInSeconds = remainingSeconds,
+            RefreshToken = accessToken.RefreshToken
         };
+    }
+
+    public override async Task<ServiceTokenResponse> GetServiceToken(ServiceTokenRequest request, ServerCallContext context)
+    {
+        _logger.LogDebug($"{nameof(GetServiceToken)} request. ServiceName = {request.ServiceId}");
+
+        var response = _authService.GetServiceTokenAsync(request);
+
+        return response;
     }
 
     [Authorize]
-    public override async Task<AccessTokenResponse> GetOneTimeTokenAsync(GetOneTimeTokenRequest request, ServerCallContext context)
+    public override async Task<RefreshTokenResponse> RefreshToken(RefreshTokenRequest request, ServerCallContext context)
     {
-        var accessToken = _authService.GetOneTimeTokenAsync(request);
-
-        TimeSpan remainingTime = accessToken.ExpireDate - DateTime.UtcNow;
-        int remainingSeconds = (int)remainingTime.TotalSeconds;
-
-        return new AccessTokenResponse()
+        return new RefreshTokenResponse()
         {
-            AccessToken = accessToken.AccessToken,
-            ExpiresInSeconds = remainingSeconds
-        };
-    }
 
-    public override Task<AccessTokenResponse> RefreshTokenAsync(RefreshTokenRequest request, ServerCallContext context)
-    {
-        throw new RpcException(new Status(StatusCode.Unavailable, "Not implemented"));
+        };
     }
 }

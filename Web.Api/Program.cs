@@ -24,7 +24,7 @@ app.UseAuthorization();
 
 app.MapGrpcService<AuthenticationService>();
 
-app.MapHealthChecks("/_health", new HealthCheckOptions()
+app.MapHealthChecks("/health", new HealthCheckOptions()
 {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });

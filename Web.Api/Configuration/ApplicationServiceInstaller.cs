@@ -2,7 +2,7 @@
 using CulturalShare.Auth.Services.DependencyInjection;
 using CulturalShare.Auth.Repositories.DependencyInjection;
 using Serilog.Core;
-using CulturalShare.Common.Helper.Constants;
+using CulturalShare.Foundation.AspNetCore.Extensions.Constants;
 
 namespace CulturalShare.Auth.API.Configuration;
 

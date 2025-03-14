@@ -1,10 +1,9 @@
 ﻿using CulturalShare.Auth.API.Configuration.Base;
-using CulturalShare.Common.Helper.Constants;
 using CulturalShare.Common.Helper.EnvHelpers;
+using CulturalShare.Foundation.AspNetCore.Extensions.Constants;
 using Serilog;
 using Serilog.Core;
 using Serilog.Sinks.Graylog;
-using Serilog.Sinks.Graylog.Core.Transport;
 
 namespace CulturalShare.Auth.API.Configuration;
 

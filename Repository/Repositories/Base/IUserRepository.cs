@@ -1,9 +1,9 @@
 ﻿using CulturalShare.Auth.Domain.Entities;
-using Monto.Repositories;
+using CulturalShare.Repositories.Interfaces;
 
 namespace CulturalShare.Auth.Repositories.Repositories.Base;
 
-public interface IAuthRepository : IRepository<UserEntity>
+public interface IUserRepository : IRepository<UserEntity>
 {
 
 }
