@@ -58,7 +58,7 @@ public class TokenService : ITokenService
         return refreshToken;
     }
 
-    public JwtSecurityToken CreateAccessToken(JwtServiceCredentials jwtServiceCredentials, DateTime expiresAt, string authorizationKey)
+    public JwtSecurityToken CreateAccessToken(JwtServiceCredentials jwtServiceCredentials, DateTime expiresAt)
     {
         var claims = new List<Claim>
         {
@@ -66,7 +66,7 @@ public class TokenService : ITokenService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authorizationKey));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtServiceCredentials.ServiceSecret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
 
         var token = new JwtSecurityToken(

@@ -18,31 +18,25 @@ public class AuthService : IAuthService
 {
     private readonly ILogger<AuthService> _logger;
     private readonly IPasswordService _passwordService;
-    private readonly IAuthRepository _authRepository;
     private readonly ITokenService _tokenService;
     private readonly TokenConfiguration _tokenConfiguration;
-    private readonly SignInManager<UserEntity> _signInManager;
-    private readonly UserManager<UserEntity> _userManager;
     private readonly JwtServicesConfig _jwtServicesSettings;
+    private readonly IUserRepository _userRepository;
 
     public AuthService(
         IPasswordService passwordService,
-        IAuthRepository passwordRepository,
         ILogger<AuthService> logger,
         ITokenService tokenService,
         TokenConfiguration tokenConfiguration,
-        SignInManager<UserEntity> signInManager,
-        UserManager<UserEntity> userManager,
-        JwtServicesConfig jwtServicesSettings)
+        JwtServicesConfig jwtServicesSettings,
+        IUserRepository userRepository)
     {
         _passwordService = passwordService;
-        _authRepository = passwordRepository;
         _logger = logger;
         _tokenService = tokenService;
         _tokenConfiguration = tokenConfiguration;
-        _signInManager = signInManager;
-        _userManager = userManager;
         _jwtServicesSettings = jwtServicesSettings;
+        _userRepository = userRepository;
     }
 
     public async Task<int> CreateUserAsync(CreateUserRequest request)
@@ -56,73 +50,75 @@ public class AuthService : IAuthService
 
         var email = request.Email.Trim();
 
+        _passwordService.CreatePasswordHash(request.Password, out var passwordHash, out var passwordSalt);
+
         var user = new UserEntity()
         {
-            Email = request.Email,
-            LastName = request.LastName,
+            Email = email,
             FirstName = request.FirstName,
-            NormalizedEmail = email.ToUpperInvariant(),
-            UserName = email,
+            LastName = request.LastName,
+            PasswordHash = passwordHash,
+            PasswordSalt = passwordSalt,            
         };
 
-        var result = await _userManager.CreateAsync(user);
-
-        if (!result.Succeeded)
-        {
-            throw new BadRequestException(string.Join("; ", result.Errors.Select(error => error.Description)));
-        }
-
-        await _signInManager.SignInAsync(user, false);
+        var result = _userRepository.Add(user);
+        await _userRepository.SaveChangesAsync();
 
         _logger.LogDebug($"Customer {user.Id} was created.");
 
         return user.Id;
     }
 
-    public async Task<AccessKeyViewModel> GetAccessTokenAsync(SignInRequest request)
+    public async Task<AccessKeyViewModel> GetSignInAsync(SignInRequest request)
     {
         if (string.IsNullOrEmpty(request.Password))
         {
             throw new BadRequestException("Password must not be empty!");
         }
 
-        SignInResult result = SignInResult.Success;
-        var user = await _authRepository
+        var user = await _userRepository
             .GetAll()
             .FirstOrDefaultAsync(x => x.Email == request.Email);
 
         if (user == null)
         {
-            _logger.LogError($"{nameof(GetAccessTokenAsync)} request. User with email = {request.Email} doesn't exist!");
+            _logger.LogError($"{nameof(GetSignInAsync)} request. User with email = {request.Email} doesn't exist!");
             throw new BadRequestException($"User with email = {request.Email} doesn't exist!");
         }
 
-        result = await _signInManager.PasswordSignInAsync(user, request.Password, false, false);
+        var isPasswordValid = _passwordService.VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt);
 
-        if (result.Succeeded)
+        if (!isPasswordValid)
         {
             _logger.LogDebug($"Customer {user.Id} was logged");
 
-            return CreateAccessKey(user, DateTime.UtcNow.AddDays(_tokenConfiguration.DaysUntilExpire), _tokenConfiguration.AuthorizationKey);
+            throw new BadRequestException($"Email or/and password is incorrect");
         }
 
-        throw new BadRequestException($"Email or/and password is incorrect");
+        return CreateAccessKey(user, DateTime.UtcNow.AddDays(_tokenConfiguration.DaysUntilExpire), _tokenConfiguration.AuthorizationKey);
     }
 
     public ServiceTokenResponse GetServiceTokenAsync(ServiceTokenRequest request)
     {
-        if (!_jwtServicesSettings.JwtServices.TryGetValue(request.ServiceName, out var serviceSettings))
+        if (!_jwtServicesSettings.JwtServices.TryGetValue(request.ServiceId, out var serviceSecret))
         {
             throw new UnauthorizedAccessException();
         }
 
-        if (request.ServiceSecret != serviceSettings.ServiceSecret || request.ServiceId != serviceSettings.ServiceId)
+        if (request.ServiceSecret != serviceSecret)
         {
             throw new UnauthorizedAccessException();
         }
 
         var expiresAt = DateTime.UtcNow.AddSeconds(_jwtServicesSettings.SecondsUntilExpire);
-        var token = CreateAccessKey(serviceSettings, expiresAt, serviceSettings.ServiceSecret);
+
+        var jwtServiceCredentials = new JwtServiceCredentials
+        {
+            ServiceId = request.ServiceId,
+            ServiceSecret = request.ServiceSecret
+        };
+
+        var token = CreateAccessKey(jwtServiceCredentials, expiresAt);
 
         var totalSeconds = (int)(token.ExpireDate - DateTime.UtcNow).TotalSeconds;
 
@@ -134,10 +130,10 @@ public class AuthService : IAuthService
     }
 
     #region Private
-    private AccessKeyViewModel CreateAccessKey(JwtServiceCredentials jwtServiceCredentials, DateTime expiresAt, string authorizationKey)
+    private AccessKeyViewModel CreateAccessKey(JwtServiceCredentials jwtServiceCredentials, DateTime expiresAt)
     {
         var refreshToken = _tokenService.CreateRefreshToken();
-        var accessToken = _tokenService.CreateAccessToken(jwtServiceCredentials, expiresAt, authorizationKey);
+        var accessToken = _tokenService.CreateAccessToken(jwtServiceCredentials, expiresAt);
         var token = new JwtSecurityTokenHandler().WriteToken(accessToken);
 
         return new AccessKeyViewModel()

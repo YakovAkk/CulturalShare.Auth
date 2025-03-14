@@ -19,7 +19,7 @@ public static class SeedDatabaseExtension
                         Email = "User@gmail.com",
                         FirstName = "FirstName",
                         LastName = "LastName",
-                        PasswordHash = "asd",
+                        PasswordHash = new byte[] { },
                     });
 
                     db.SaveChanges();

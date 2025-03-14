@@ -9,6 +9,6 @@ public interface ITokenService
 {
     public string CreateRandomToken();
     public JwtSecurityToken CreateAccessToken(UserEntity user, DateTime expiresAt, string authorizationKey);
-    public JwtSecurityToken CreateAccessToken(JwtServiceCredentials jwtServiceCredentials, DateTime expiresAt, string authorizationKey);
+    public JwtSecurityToken CreateAccessToken(JwtServiceCredentials jwtServiceCredentials, DateTime expiresAt);
     public RefreshToken CreateRefreshToken();
 }

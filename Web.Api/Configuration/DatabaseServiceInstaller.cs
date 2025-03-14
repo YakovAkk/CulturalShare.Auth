@@ -20,17 +20,6 @@ public class DatabaseServiceInstaller : IServiceInstaller
              options.UseNpgsql(sortOutCredentialsHelper.GetPostgresConnectionString()));
         builder.Services.AddTransient<DbContext, AuthDbContext>();
 
-        builder.Services.AddIdentity<UserEntity, IdentityRole<int>>(options =>
-        {
-            options.Password.RequireDigit = false;
-            options.Password.RequireLowercase = false;
-            options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequireUppercase = false;
-            options.Password.RequiredLength = 8;
-        })
-        .AddEntityFrameworkStores<AuthDbContext>()
-        .AddDefaultTokenProviders();
-
         logger.Information($"{nameof(DatabaseServiceInstaller)} installed.");
     }
 }

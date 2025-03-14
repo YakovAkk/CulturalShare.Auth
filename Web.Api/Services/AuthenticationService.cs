@@ -28,7 +28,7 @@ public class AuthenticationService : Authentication.AuthenticationBase
 
     public override async Task<SignInResponse> SignIn(SignInRequest request, ServerCallContext context)
     {
-        var accessToken = await _authService.GetAccessTokenAsync(request);
+        var accessToken = await _authService.GetSignInAsync(request);
 
         TimeSpan remainingTime = accessToken.ExpireDate - DateTime.UtcNow;  
         int remainingSeconds = (int)remainingTime.TotalSeconds;
@@ -50,8 +50,11 @@ public class AuthenticationService : Authentication.AuthenticationBase
     }
 
     [Authorize]
-    public override Task<RefreshTokenResponse> RefreshToken(RefreshTokenRequest request, ServerCallContext context)
+    public override async Task<RefreshTokenResponse> RefreshToken(RefreshTokenRequest request, ServerCallContext context)
     {
-        throw new RpcException(new Status(StatusCode.Unavailable, "Not implemented"));
+        return new RefreshTokenResponse()
+        {
+
+        };
     }
 }
