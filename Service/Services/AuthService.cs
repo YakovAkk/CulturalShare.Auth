@@ -5,6 +5,7 @@ using CulturalShare.Auth.Services.Configuration;
 using CulturalShare.Auth.Services.Model;
 using CulturalShare.Auth.Services.Services.Base;
 using CultureShare.Foundation.Exceptions;
+using Infrastructure.Configuration;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -22,6 +23,7 @@ public class AuthService : IAuthService
     private readonly TokenConfiguration _tokenConfiguration;
     private readonly SignInManager<UserEntity> _signInManager;
     private readonly UserManager<UserEntity> _userManager;
+    private readonly JwtServicesConfig _jwtServicesSettings;
 
     public AuthService(
         IPasswordService passwordService,
@@ -30,7 +32,8 @@ public class AuthService : IAuthService
         ITokenService tokenService,
         TokenConfiguration tokenConfiguration,
         SignInManager<UserEntity> signInManager,
-        UserManager<UserEntity> userManager)
+        UserManager<UserEntity> userManager,
+        JwtServicesConfig jwtServicesSettings)
     {
         _passwordService = passwordService;
         _authRepository = passwordRepository;
@@ -39,6 +42,7 @@ public class AuthService : IAuthService
         _tokenConfiguration = tokenConfiguration;
         _signInManager = signInManager;
         _userManager = userManager;
+        _jwtServicesSettings = jwtServicesSettings;
     }
 
     public async Task<int> CreateUserAsync(CreateUserRequest request)
@@ -75,9 +79,9 @@ public class AuthService : IAuthService
         return user.Id;
     }
 
-    public async Task<AccessKeyViewModel> GetAccessTokenAsync(LoginRequest request)
+    public async Task<AccessKeyViewModel> GetAccessTokenAsync(SignInRequest request)
     {
-        if (!string.IsNullOrEmpty(request.Password))
+        if (string.IsNullOrEmpty(request.Password))
         {
             throw new BadRequestException("Password must not be empty!");
         }
@@ -105,20 +109,45 @@ public class AuthService : IAuthService
         throw new BadRequestException($"Email or/and password is incorrect");
     }
 
-    public AccessKeyViewModel GetOneTimeTokenAsync(GetOneTimeTokenRequest request)
+    public ServiceTokenResponse GetServiceTokenAsync(ServiceTokenRequest request)
     {
-        _logger.LogDebug($"{nameof(GetOneTimeTokenAsync)} request. {JsonConvert.SerializeObject(request)}");
-
-        var user = new UserEntity()
+        if (!_jwtServicesSettings.JwtServices.TryGetValue(request.ServiceName, out var serviceSettings))
         {
-            Id = request.UserId,
-            Email = request.Email,
-        };
+            throw new UnauthorizedAccessException();
+        }
 
-        return CreateAccessKey(user, DateTime.UtcNow, _tokenConfiguration.OneTimeAuthorizationKey);
+        if (request.ServiceSecret != serviceSettings.ServiceSecret || request.ServiceId != serviceSettings.ServiceId)
+        {
+            throw new UnauthorizedAccessException();
+        }
+
+        var expiresAt = DateTime.UtcNow.AddSeconds(_jwtServicesSettings.SecondsUntilExpire);
+        var token = CreateAccessKey(serviceSettings, expiresAt, serviceSettings.ServiceSecret);
+
+        var totalSeconds = (int)(token.ExpireDate - DateTime.UtcNow).TotalSeconds;
+
+        return new ServiceTokenResponse
+        {
+            AccessToken = token.AccessToken,
+            ExpiresInSeconds = totalSeconds
+        };
     }
 
     #region Private
+    private AccessKeyViewModel CreateAccessKey(JwtServiceCredentials jwtServiceCredentials, DateTime expiresAt, string authorizationKey)
+    {
+        var refreshToken = _tokenService.CreateRefreshToken();
+        var accessToken = _tokenService.CreateAccessToken(jwtServiceCredentials, expiresAt, authorizationKey);
+        var token = new JwtSecurityTokenHandler().WriteToken(accessToken);
+
+        return new AccessKeyViewModel()
+        {
+            RefreshToken = refreshToken.Token,
+            AccessToken = token,
+            ExpireDate = accessToken.ValidTo,
+        };
+    }
+
     private AccessKeyViewModel CreateAccessKey(UserEntity user, DateTime expiresAt, string authorizationKey)
     {
         _logger.LogDebug($"{nameof(CreateAccessKey)} request. User Id = {user.Id}");

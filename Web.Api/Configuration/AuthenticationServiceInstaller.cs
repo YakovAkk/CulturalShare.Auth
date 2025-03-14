@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Serilog.Core;
+using Microsoft.Extensions.Configuration;
+using Infrastructure.Configuration;
 
 namespace CulturalShare.Auth.API.Configuration;
 
@@ -15,22 +17,28 @@ public class AuthenticationServiceInstaller : IServiceInstaller
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         })
-        .AddJwtBearer(
-            options =>
+        .AddJwtBearer(options =>
+        {
+            options.RequireHttpsMetadata = true;
+            options.SaveToken = true;
+            options.TokenValidationParameters = new TokenValidationParameters
             {
-                options.RequireHttpsMetadata = false;
-                options.SaveToken = true;
-                options.TokenValidationParameters = new TokenValidationParameters()
-                {
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:AuthorizationKey"])),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ValidateIssuerSigningKey = true,
-                    ValidateLifetime = true,
-                };
-            });
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:AuthorizationKey"])),
+                ValidateIssuer = true,
+                ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+                ValidateAudience = true,
+                ValidAudience = builder.Configuration["JwtSettings:Audience"],
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
+        });
 
         builder.Services.AddAuthorization();
+
+        var jwtSettings = builder.Configuration.GetSection("JwtServicesConfig").Get<JwtServicesConfig>();
+        builder.Services.AddSingleton(jwtSettings);
 
         logger.Information($"{nameof(AuthenticationServiceInstaller)} installed.");
     }
