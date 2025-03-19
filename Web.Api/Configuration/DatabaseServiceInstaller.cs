@@ -1,6 +1,6 @@
 ﻿using CulturalShare.Auth.API.Configuration.Base;
 using CulturalShare.Auth.Domain.Context;
-using CulturalShare.Common.Helper.EnvHelpers;
+using CulturalShare.Foundation.EntironmentHelper.EnvHelpers;
 using Microsoft.EntityFrameworkCore;
 using Serilog.Core;
 using StackExchange.Redis;
@@ -19,8 +19,7 @@ public class DatabaseServiceInstaller : IServiceInstaller
 
         builder.Services.AddSingleton<IConnectionMultiplexer>(provider =>
         {
-            var redisConfiguration = builder.Configuration["ConnectionStrings:Redis"];
-            return ConnectionMultiplexer.Connect(redisConfiguration);
+            return ConnectionMultiplexer.Connect(sortOutCredentialsHelper.GetRedisConnectionString());
         });
 
         logger.Information($"{nameof(DatabaseServiceInstaller)} installed.");

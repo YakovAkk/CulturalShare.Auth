@@ -1,8 +1,11 @@
 ﻿using CulturalShare.Auth.Domain.Entities;
 using CulturalShare.Auth.Services.Model;
 using CulturalShare.Auth.Services.Services.Base;
+using CulturalShare.Foundation.EntironmentHelper.Configurations;
+using DomainEntity.Entities;
 using Infrastructure.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Repository.Repositories.Base;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -13,10 +16,14 @@ namespace CulturalShare.Auth.Services.Services;
 public class TokenService : ITokenService
 {
     private readonly JwtServicesConfig _jwtServicesSettings;
+    private readonly IRefreshTokenRepository _refreshTokenRepository;
 
-    public TokenService(JwtServicesConfig jwtServicesSettings)
+    public TokenService(
+        JwtServicesConfig jwtServicesSettings, 
+        IRefreshTokenRepository refreshTokenRepository)
     {
         _jwtServicesSettings = jwtServicesSettings;
+        _refreshTokenRepository = refreshTokenRepository;
     }
 
     public string CreateRandomToken()
@@ -46,15 +53,20 @@ public class TokenService : ITokenService
         return token;
     }
 
-    public RefreshToken CreateRefreshToken()
+    public async Task<RefreshToken> CreateRefreshToken(int secondsUntilExpire)
     {
-        var refreshToken = new RefreshToken()
-        {
-            Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
-            CreatedAt = DateTime.UtcNow
-        };
+        var token = CreateRandomToken();
 
-        return refreshToken;
+        var refreshToken = new RefreshTokenEntity(token, secondsUntilExpire);
+
+        _refreshTokenRepository.Add(refreshToken);  
+        await _refreshTokenRepository.SaveChangesAsync();
+
+        return new RefreshToken()
+        {
+            Token = refreshToken.Token,
+            IssuedAt = refreshToken.IssuedAt,
+        };
     }
 
     public JwtSecurityToken CreateAccessToken(JwtServiceCredentials jwtServiceCredentials, DateTime expiresAt)

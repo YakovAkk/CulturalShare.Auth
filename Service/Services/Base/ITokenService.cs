@@ -10,5 +10,5 @@ public interface ITokenService
     public string CreateRandomToken();
     public JwtSecurityToken CreateAccessToken(UserEntity user, DateTime expiresAt, JwtServiceCredentials jwtServiceCredentials);
     public JwtSecurityToken CreateAccessToken(JwtServiceCredentials jwtServiceCredentials, DateTime expiresAt);
-    public RefreshToken CreateRefreshToken();
+    Task<RefreshToken> CreateRefreshToken(int secondsUntilExpire);
 }

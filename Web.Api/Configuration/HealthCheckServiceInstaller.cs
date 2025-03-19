@@ -1,6 +1,6 @@
 ﻿using Serilog.Core;
 using CulturalShare.Auth.API.Configuration.Base;
-using CulturalShare.Common.Helper.EnvHelpers;
+using CulturalShare.Foundation.EntironmentHelper.EnvHelpers;
 
 namespace CulturalShare.Auth.API.Configuration;
 

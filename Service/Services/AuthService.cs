@@ -3,11 +3,13 @@ using CulturalShare.Auth.Domain.Entities;
 using CulturalShare.Auth.Repositories.Repositories.Base;
 using CulturalShare.Auth.Services.Model;
 using CulturalShare.Auth.Services.Services.Base;
+using CulturalShare.Foundation.EntironmentHelper.Configurations;
 using CultureShare.Foundation.Exceptions;
 using Infrastructure.Configuration;
 using Infrastructure.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Repository.Repositories.Base;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace CulturalShare.Auth.Services.Services;
@@ -19,7 +21,7 @@ public class AuthService : IAuthService
     private readonly ITokenService _tokenService;
     private readonly JwtServicesConfig _jwtServicesSettings;
     private readonly IUserRepository _userRepository;
-
+   
     public AuthService(
         IPasswordService passwordService,
         ILogger<AuthService> logger,
@@ -138,7 +140,6 @@ public class AuthService : IAuthService
     #region Private
     private AccessKeyViewModel CreateAccessKey(JwtServiceCredentials jwtServiceCredentials, DateTime expiresAt)
     {
-        var refreshToken = _tokenService.CreateRefreshToken();
         var accessToken = _tokenService.CreateAccessToken(jwtServiceCredentials, expiresAt);
         var token = new JwtSecurityTokenHandler().WriteToken(accessToken);
 
@@ -150,17 +151,17 @@ public class AuthService : IAuthService
         };
     }
 
-    private AccessKeyViewModel CreateAccessKey(UserEntity user, DateTime expiresAt, JwtServiceCredentials jwtServiceCredentials)
+    private async Task<AccessKeyViewModel> CreateAccessKey(UserEntity user, DateTime expiresAt, JwtServiceCredentials jwtServiceCredentials)
     {
         _logger.LogDebug($"{nameof(CreateAccessKey)} request. User Id = {user.Id}");
 
-        var refreshToken = _tokenService.CreateRefreshToken();
+        var refreshToken = await _tokenService.CreateRefreshToken();
         var accessToken = _tokenService.CreateAccessToken(user, expiresAt, jwtServiceCredentials);
         var token = new JwtSecurityTokenHandler().WriteToken(accessToken);
 
         return new AccessKeyViewModel()
         {
-            RefreshToken = refreshToken.Token,
+            RefreshToken = refreshToken.,
             AccessToken = token,
             ExpireDate = accessToken.ValidTo,
         };

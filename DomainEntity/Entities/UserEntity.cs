@@ -1,5 +1,7 @@
-﻿using MX.Database.Entities;
+﻿using DomainEntity.Entities;
+using MX.Database.Entities;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace CulturalShare.Auth.Domain.Entities;
 
@@ -16,4 +18,7 @@ public class UserEntity : BaseEntity<int>
 
     public byte[] PasswordHash { get; set; }
     public byte[] PasswordSalt { get; set; }
+
+    [JsonIgnore]
+    public ICollection<RefreshTokenEntity> RefreshTokens { get; set; }
 }

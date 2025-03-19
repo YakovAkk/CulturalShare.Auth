@@ -1,8 +1,7 @@
 ﻿using CulturalShare.Auth.Services.Services;
 using CulturalShare.Auth.Services.Services.Base;
+using CulturalShare.Foundation.Authorization.JwtServices;
 using Microsoft.Extensions.DependencyInjection;
-using Service.Services;
-using Service.Services.Base;
 
 namespace CulturalShare.Auth.Services.DependencyInjection;
 
