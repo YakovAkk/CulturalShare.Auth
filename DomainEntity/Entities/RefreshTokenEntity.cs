@@ -14,7 +14,7 @@ public class RefreshTokenEntity : BaseEntity<int>
     public bool IsRevoked { get; private set; }
 
     [ForeignKey(nameof(User))]
-    public int UserEntityId { get; set; }
+    public int UserId { get; set; }
 
     [JsonIgnore]
     public UserEntity User { get; set; }
@@ -25,10 +25,16 @@ public class RefreshTokenEntity : BaseEntity<int>
     [NotMapped]
     public bool IsActive => !IsExpired && RevokedAt == null;
 
-    public RefreshTokenEntity(string token, int secondsUntilExpire)
+    private RefreshTokenEntity()
+    {
+            
+    }
+
+    public RefreshTokenEntity(string token, int secondsUntilExpire, int userId)
     {
         Token = token;
         IssuedAt = DateTime.UtcNow;
         ExpiresAt = DateTime.UtcNow.AddSeconds(secondsUntilExpire);
+        UserId = userId;
     }
 }

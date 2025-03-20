@@ -1,16 +1,18 @@
 ﻿using AuthenticationProto;
+using Azure.Core;
 using CulturalShare.Auth.Domain.Entities;
 using CulturalShare.Auth.Repositories.Repositories.Base;
 using CulturalShare.Auth.Services.Model;
 using CulturalShare.Auth.Services.Services.Base;
 using CulturalShare.Foundation.EntironmentHelper.Configurations;
 using CultureShare.Foundation.Exceptions;
+using Grpc.Core;
 using Infrastructure.Configuration;
 using Infrastructure.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Repository.Repositories.Base;
-using System.IdentityModel.Tokens.Jwt;
+using Service.Model;
 
 namespace CulturalShare.Auth.Services.Services;
 
@@ -20,53 +22,26 @@ public class AuthService : IAuthService
     private readonly IPasswordService _passwordService;
     private readonly ITokenService _tokenService;
     private readonly JwtServicesConfig _jwtServicesSettings;
+    private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IUserRepository _userRepository;
-   
+
     public AuthService(
         IPasswordService passwordService,
         ILogger<AuthService> logger,
         ITokenService tokenService,
         JwtServicesConfig jwtServicesSettings,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        IRefreshTokenRepository refreshTokenRepository)
     {
         _passwordService = passwordService;
         _logger = logger;
         _tokenService = tokenService;
         _jwtServicesSettings = jwtServicesSettings;
         _userRepository = userRepository;
+        _refreshTokenRepository = refreshTokenRepository;
     }
 
-    public async Task<int> CreateUserAsync(CreateUserRequest request)
-    {
-        _logger.LogDebug($"{nameof(CreateUserAsync)} request. User = {request.FirstName} {request.LastName} registered");
-
-        if (string.IsNullOrEmpty(request.Password))
-        {
-            throw new BadRequestException("Password must not be empty!");
-        }
-
-        var email = request.Email.Trim();
-
-        _passwordService.CreatePasswordHash(request.Password, out var passwordHash, out var passwordSalt);
-
-        var user = new UserEntity()
-        {
-            Email = email,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            PasswordHash = passwordHash,
-            PasswordSalt = passwordSalt,            
-        };
-
-        var result = _userRepository.Add(user);
-        await _userRepository.SaveChangesAsync();
-
-        _logger.LogDebug($"Customer {user.Id} was created.");
-
-        return user.Id;
-    }
-
-    public async Task<AccessKeyViewModel> GetSignInAsync(SignInRequest request)
+    public async Task<AccessAndRefreshTokenViewModel> GetSignInAsync(SignInRequest request)
     {
         if (string.IsNullOrEmpty(request.Password))
         {
@@ -103,10 +78,12 @@ public class AuthService : IAuthService
             ServiceSecret = serviceSecret
         };
 
-        return CreateAccessKey(user, DateTime.UtcNow.AddSeconds(_jwtServicesSettings.SecondsUntilExpireUserKey), jwtServiceCredentials);
+        var accessTokenViewModel = await _tokenService.CreateAccessAndRefreshTokensForUserAsync(jwtServiceCredentials, user);
+
+        return accessTokenViewModel;
     }
 
-    public ServiceTokenResponse GetServiceTokenAsync(ServiceTokenRequest request)
+    public async Task<ServiceTokenResponse> GetServiceTokenAsync(ServiceTokenRequest request)
     {
         if (!_jwtServicesSettings.JwtSecretTokenPairs.TryGetValue(request.ServiceId, out var serviceSecret))
         {
@@ -118,54 +95,87 @@ public class AuthService : IAuthService
             throw new UnauthorizedAccessException();
         }
 
-        var expiresAt = DateTime.UtcNow.AddSeconds(_jwtServicesSettings.SecondsUntilExpireServiceKey);
-
         var jwtServiceCredentials = new JwtServiceCredentials
         {
             ServiceId = request.ServiceId,
             ServiceSecret = request.ServiceSecret
         };
 
-        var token = CreateAccessKey(jwtServiceCredentials, expiresAt);
+        var token = await _tokenService.CreateAccessTokenForServiceAsync(jwtServiceCredentials);
+        var totalSeconds = (int)(token.AccessTokenExpiresAt - DateTime.UtcNow).TotalSeconds;
 
-        var totalSeconds = (int)(token.ExpireDate - DateTime.UtcNow).TotalSeconds;
-
-        return new ServiceTokenResponse
+        var serviceTokenResponse = new ServiceTokenResponse
         {
             AccessToken = token.AccessToken,
             ExpiresInSeconds = totalSeconds
         };
+
+        return serviceTokenResponse;
+    }
+
+    public async Task<RefreshTokenResponse> RefreshTokenAsync(RefreshTokenRequest request, int userId)
+    {
+        var refreshToken = _refreshTokenRepository
+            .GetAll()
+            .FirstOrDefault(x => x.Token == request.RefreshToken && x.UserId == userId);
+
+        if (refreshToken == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Token does not exist."));
+        }
+
+        if (!refreshToken.IsActive)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "Token has expired."));
+        }
+
+        if (!_jwtServicesSettings.JwtSecretTokenPairs.TryGetValue(JwtTokenConstants.UserAudience, out var serviceSecret))
+        {
+            throw new UnauthorizedAccessException();
+        }
+
+        var jwtServiceCredentials = new JwtServiceCredentials
+        {
+            ServiceId = JwtTokenConstants.UserAudience,
+            ServiceSecret = serviceSecret
+        };
+
+        var user = await _userRepository
+            .GetAll()
+            .FirstOrDefaultAsync(x => x.Id == userId);
+
+        if (user == null)
+        {
+            _logger.LogError($"{nameof(GetSignInAsync)} request. User with Id = {userId} doesn't exist!");
+            throw new BadRequestException($"User with Id = {userId} doesn't exist!");
+        }
+
+        // if refresh token can survive an other access token 
+        if (refreshToken.ExpiresAt > DateTime.UtcNow.AddSeconds(_jwtServicesSettings.SecondsUntilExpireUserJwtToken))
+        {
+            var accessToken = await _tokenService.CreateAccessTokenForUserAsync(jwtServiceCredentials, user);
+
+            return new RefreshTokenResponse
+            {
+                AccessToken = accessToken.AccessToken,
+                AccessTokenExpiresInSeconds = (int)(accessToken.AccessTokenExpiresAt - DateTime.UtcNow).TotalSeconds,
+                RefreshTokenExpiresInSeconds = (int)(refreshToken.ExpiresAt - DateTime.UtcNow).TotalSeconds,
+                RefreshToken = refreshToken.Token
+            };
+        }
+
+        var accessRefreshTokenPair = await _tokenService.CreateAccessAndRefreshTokensForUserAsync(jwtServiceCredentials, user);
+
+        return new RefreshTokenResponse
+        {
+            AccessToken = accessRefreshTokenPair.AccessToken,
+            AccessTokenExpiresInSeconds = (int)(accessRefreshTokenPair.AccessTokenExpiresAt - DateTime.UtcNow).TotalSeconds,
+            RefreshTokenExpiresInSeconds = (int)(accessRefreshTokenPair.RefreshTokenExpiresAt - DateTime.UtcNow).TotalSeconds,
+            RefreshToken = accessRefreshTokenPair.RefreshToken
+        };
     }
 
     #region Private
-    private AccessKeyViewModel CreateAccessKey(JwtServiceCredentials jwtServiceCredentials, DateTime expiresAt)
-    {
-        var accessToken = _tokenService.CreateAccessToken(jwtServiceCredentials, expiresAt);
-        var token = new JwtSecurityTokenHandler().WriteToken(accessToken);
-
-        return new AccessKeyViewModel()
-        {
-            RefreshToken = refreshToken.Token,
-            AccessToken = token,
-            ExpireDate = accessToken.ValidTo,
-        };
-    }
-
-    private async Task<AccessKeyViewModel> CreateAccessKey(UserEntity user, DateTime expiresAt, JwtServiceCredentials jwtServiceCredentials)
-    {
-        _logger.LogDebug($"{nameof(CreateAccessKey)} request. User Id = {user.Id}");
-
-        var refreshToken = await _tokenService.CreateRefreshToken();
-        var accessToken = _tokenService.CreateAccessToken(user, expiresAt, jwtServiceCredentials);
-        var token = new JwtSecurityTokenHandler().WriteToken(accessToken);
-
-        return new AccessKeyViewModel()
-        {
-            RefreshToken = refreshToken.,
-            AccessToken = token,
-            ExpireDate = accessToken.ValidTo,
-        };
-    }
 
     #endregion
 }

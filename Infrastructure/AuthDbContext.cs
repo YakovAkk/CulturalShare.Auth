@@ -7,6 +7,7 @@ namespace CulturalShare.Auth.Domain.Context;
 public class AuthDbContext : DbContext
 {
     public DbSet<UserEntity> Users { get; set; }
+    public DbSet<RefreshTokenEntity> RefreshTokens { get; set; }
 
     public AuthDbContext(DbContextOptions<AuthDbContext> options) : base(options)
     {
@@ -14,8 +15,13 @@ public class AuthDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<RefreshTokenEntity>()
-            .Property(b => b.IsRevoked)
-            .HasComputedColumnSql("CAST(CASE WHEN [RevokedAt] IS NOT NULL THEN 1 ELSE 0 END AS BIT)", stored: true);
+        modelBuilder.Entity<RefreshTokenEntity>(entity =>
+        {
+            // Define computed column "IsExpired" in database
+            entity.Property(b => b.IsRevoked)
+            .HasComputedColumnSql("\"RevokedAt\" IS NOT NULL", stored: true);
+
+            entity.HasIndex(e => new {e.Token , e.UserId}).IsUnique();
+        });
     }
 }

@@ -1,6 +1,7 @@
 using CulturalShare.Auth.API.Configuration.Base;
 using CulturalShare.Auth.API.DependencyInjection;
 using CulturalShare.Auth.Services;
+using CulturalShare.Foundation.AspNetCore.Extensions.MiddlewareClasses;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
@@ -23,6 +24,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapGrpcService<AuthenticationService>();
+
+app.UseMiddleware<HandlingExceptionsMiddleware>();
 
 app.MapHealthChecks("/health", new HealthCheckOptions()
 {

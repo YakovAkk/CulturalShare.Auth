@@ -16,7 +16,6 @@ public class ApplicationServiceInstaller : IServiceInstaller
         builder.Services.AddControllers();
         builder.Services.AddAuthServices();
         builder.Services.AddAuthRepositories();
-        builder.Services.AddAuthConfiguration(builder.Configuration);
 
         logger.Information($"{nameof(ApplicationServiceInstaller)} installed.");
     }

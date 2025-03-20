@@ -2,10 +2,11 @@
 using CulturalShare.Auth.Services.Services.Base;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace CulturalShare.Auth.Services;
 
-public class AuthenticationService : Authentication.AuthenticationBase
+public class AuthenticationService : AuthenticationGrpcService.AuthenticationGrpcServiceBase
 {
     private readonly IAuthService _authService;
     private readonly ILogger<AuthenticationService> _logger;
@@ -16,28 +17,21 @@ public class AuthenticationService : Authentication.AuthenticationBase
         _logger = log;
     }
 
-    public override async Task<CreateUserResponse> CreateUser(CreateUserRequest request, ServerCallContext context)
-    {
-        var id = await _authService.CreateUserAsync(request);
-
-        return new CreateUserResponse() 
-        { 
-            Id = id
-        };
-    }
-
     public override async Task<SignInResponse> SignIn(SignInRequest request, ServerCallContext context)
     {
+        _logger.LogDebug($"{nameof(SignIn)} request. Email = {request.Email}");
+
         var accessToken = await _authService.GetSignInAsync(request);
 
-        TimeSpan remainingTime = accessToken.ExpireDate - DateTime.UtcNow;  
-        int remainingSeconds = (int)remainingTime.TotalSeconds;
+        var accessTokenRemainingTime = accessToken.AccessTokenExpiresAt - DateTime.UtcNow;
+        var refreshTokenRemainingTime = accessToken.RefreshTokenExpiresAt - DateTime.UtcNow;
 
-        return new SignInResponse()
+        return new SignInResponse
         {
             AccessToken = accessToken.AccessToken,
-            ExpiresInSeconds = remainingSeconds,
-            RefreshToken = accessToken.RefreshToken
+            AccessTokenExpiresInSeconds = (int)accessTokenRemainingTime.TotalSeconds,
+            RefreshToken = accessToken.RefreshToken,
+            RefreshTokenExpiresInSeconds = (int)refreshTokenRemainingTime.TotalSeconds
         };
     }
 
@@ -45,7 +39,7 @@ public class AuthenticationService : Authentication.AuthenticationBase
     {
         _logger.LogDebug($"{nameof(GetServiceToken)} request. ServiceName = {request.ServiceId}");
 
-        var response = _authService.GetServiceTokenAsync(request);
+        var response = await _authService.GetServiceTokenAsync(request);
 
         return response;
     }
@@ -53,9 +47,23 @@ public class AuthenticationService : Authentication.AuthenticationBase
     [Authorize]
     public override async Task<RefreshTokenResponse> RefreshToken(RefreshTokenRequest request, ServerCallContext context)
     {
-        return new RefreshTokenResponse()
-        {
+        // Access HttpContext from ServerCallContext
+        var httpContext = context.GetHttpContext();
 
-        };
+        // Retrieve the user claims from the JWT token
+        var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null)
+        {
+            throw new RpcException(new Status(StatusCode.Unauthenticated, "User ID claim not found."));
+        }
+
+        var userId = Convert.ToInt32(userIdClaim.Value);
+
+        _logger.LogDebug($"{nameof(RefreshToken)} request from UserId: {userId}");
+
+        var response = await _authService.RefreshTokenAsync(request, userId);
+
+        return response;
     }
 }

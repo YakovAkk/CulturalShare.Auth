@@ -1,14 +1,13 @@
 ﻿using CulturalShare.Auth.Domain.Entities;
 using CulturalShare.Auth.Services.Model;
 using Infrastructure.Configuration;
-using System.IdentityModel.Tokens.Jwt;
+using Service.Model;
 
 namespace CulturalShare.Auth.Services.Services.Base;
 
 public interface ITokenService
 {
-    public string CreateRandomToken();
-    public JwtSecurityToken CreateAccessToken(UserEntity user, DateTime expiresAt, JwtServiceCredentials jwtServiceCredentials);
-    public JwtSecurityToken CreateAccessToken(JwtServiceCredentials jwtServiceCredentials, DateTime expiresAt);
-    Task<RefreshToken> CreateRefreshToken(int secondsUntilExpire);
+    Task<AccessTokenViewModel> CreateAccessTokenForServiceAsync(JwtServiceCredentials jwtServiceCredentials);
+    Task<AccessTokenViewModel> CreateAccessTokenForUserAsync(JwtServiceCredentials jwtServiceCredentials, UserEntity user);
+    Task<AccessAndRefreshTokenViewModel> CreateAccessAndRefreshTokensForUserAsync(JwtServiceCredentials jwtServiceCredentials, UserEntity user);
 }
