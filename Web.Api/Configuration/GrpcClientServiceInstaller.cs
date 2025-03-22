@@ -8,9 +8,13 @@ public class GrpcClientServiceInstaller : IServiceInstaller
 {
     public void Install(WebApplicationBuilder builder, Logger logger)
     {
-        builder.Services
-            .AddGrpc(c => c.Interceptors.Add<ExceptionHandlerGRPCInterceptor>())
-            .AddJsonTranscoding();
+        builder.Services.AddSingleton<ValidationInterceptor>();
+
+        builder.Services.AddGrpc(options =>
+        {
+            options.Interceptors.Add<ExceptionHandlerGRPCInterceptor>();
+            options.Interceptors.Add<ValidationInterceptor>();
+        }).AddJsonTranscoding();
 
         logger.Information($"{nameof(GrpcClientServiceInstaller)} installed.");
     }

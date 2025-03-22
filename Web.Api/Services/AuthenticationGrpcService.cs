@@ -1,9 +1,8 @@
 ﻿using AuthenticationProto;
 using CulturalShare.Auth.Services.Services.Base;
-using ErrorOr;
+using CulturalShare.Common.Helper.Extensions;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
-using Service.Temp;
 using System.Security.Claims;
 
 namespace CulturalShare.Auth.Services;

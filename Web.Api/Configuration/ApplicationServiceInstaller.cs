@@ -3,6 +3,8 @@ using CulturalShare.Auth.Services.DependencyInjection;
 using CulturalShare.Auth.Repositories.DependencyInjection;
 using Serilog.Core;
 using CulturalShare.Foundation.AspNetCore.Extensions.Constants;
+using FluentValidation;
+using Service.Validators;
 
 namespace CulturalShare.Auth.API.Configuration;
 
@@ -16,6 +18,8 @@ public class ApplicationServiceInstaller : IServiceInstaller
         builder.Services.AddControllers();
         builder.Services.AddAuthServices();
         builder.Services.AddAuthRepositories();
+
+        builder.Services.AddValidatorsFromAssemblyContaining<CreateUserRequestValidator>();
 
         logger.Information($"{nameof(ApplicationServiceInstaller)} installed.");
     }

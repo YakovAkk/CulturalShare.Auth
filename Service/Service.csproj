@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CulturalShare.Common.Helper" Version="8.0.26-CUL-20" />
+    <PackageReference Include="CulturalShare.Common.Helper" Version="8.0.26-CUL-20-v2" />
     <PackageReference Include="culturalshare.foundation.entironmenthelper" Version="8.0.0-CUL-20-v4" />
     <PackageReference Include="CulturalShare.Protos" Version="8.0.9-CUL-20-v9" />
     <PackageReference Include="CultureShare.Foundation.Exceptions" Version="8.0.1" />
@@ -16,6 +16,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="StackExchange.Redis" Version="2.8.31" />
 	<PackageReference Include="CulturalShare.Foundation.Authorization" Version="8.0.0-CUL-20-v2" />
+	<PackageReference Include="Grpc.AspNetCore" Version="2.70.0" />
   </ItemGroup>
 
   <ItemGroup>
