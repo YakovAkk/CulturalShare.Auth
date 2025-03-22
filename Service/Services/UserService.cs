@@ -3,6 +3,7 @@ using CulturalShare.Auth.Domain.Entities;
 using CulturalShare.Auth.Repositories.Repositories.Base;
 using CulturalShare.Auth.Services.Services.Base;
 using CultureShare.Foundation.Exceptions;
+using ErrorOr;
 using Microsoft.Extensions.Logging;
 using Service.Services.Base;
 
@@ -24,13 +25,13 @@ public class UserService : IUserService
         _userRepository = userRepository;
     }
 
-    public async Task<int> CreateUserAsync(CreateUserRequest request)
+    public async Task<ErrorOr<int>> CreateUserAsync(CreateUserRequest request)
     {
         _logger.LogDebug($"{nameof(CreateUserAsync)} request. User = {request.FirstName} {request.LastName} registered");
 
         if (string.IsNullOrEmpty(request.Password))
         {
-            throw new BadRequestException("Password must not be empty!");
+            return Error.Validation("Password must not be empty!");
         }
 
         var email = request.Email.Trim();

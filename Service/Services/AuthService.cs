@@ -1,12 +1,8 @@
 ﻿using AuthenticationProto;
-using Azure.Core;
-using CulturalShare.Auth.Domain.Entities;
 using CulturalShare.Auth.Repositories.Repositories.Base;
-using CulturalShare.Auth.Services.Model;
 using CulturalShare.Auth.Services.Services.Base;
 using CulturalShare.Foundation.EntironmentHelper.Configurations;
-using CultureShare.Foundation.Exceptions;
-using Grpc.Core;
+using ErrorOr;
 using Infrastructure.Configuration;
 using Infrastructure.Constants;
 using Microsoft.EntityFrameworkCore;
@@ -41,11 +37,11 @@ public class AuthService : IAuthService
         _refreshTokenRepository = refreshTokenRepository;
     }
 
-    public async Task<AccessAndRefreshTokenViewModel> GetSignInAsync(SignInRequest request)
+    public async Task<ErrorOr<AccessAndRefreshTokenViewModel>> GetSignInAsync(SignInRequest request)
     {
-        if (string.IsNullOrEmpty(request.Password))
+        if (string.IsNullOrWhiteSpace(request.Password))
         {
-            throw new BadRequestException("Password must not be empty!");
+            return Error.Validation("EmptyPassword", "Password must not be empty!");
         }
 
         var user = await _userRepository
@@ -55,21 +51,20 @@ public class AuthService : IAuthService
         if (user == null)
         {
             _logger.LogError($"{nameof(GetSignInAsync)} request. User with email = {request.Email} doesn't exist!");
-            throw new BadRequestException($"User with email = {request.Email} doesn't exist!");
+            return Error.NotFound("UserNotFound", $"User with email = {request.Email} doesn't exist!");
         }
 
         var isPasswordValid = _passwordService.VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt);
 
         if (!isPasswordValid)
         {
-            _logger.LogDebug($"Customer {user.Id} was logged");
-
-            throw new BadRequestException($"Email or/and password is incorrect");
+            _logger.LogDebug($"Invalid login attempt for user with email = {user.Email}");
+            return Error.Validation("InvalidCredentials", "Email or password is incorrect.");
         }
 
         if (!_jwtServicesSettings.JwtSecretTokenPairs.TryGetValue(JwtTokenConstants.UserAudience, out var serviceSecret))
         {
-            throw new UnauthorizedAccessException();
+            return Error.Unauthorized("InvalidTokenService", "JWT secret invalid.");
         }
 
         var jwtServiceCredentials = new JwtServiceCredentials
@@ -83,16 +78,17 @@ public class AuthService : IAuthService
         return accessTokenViewModel;
     }
 
-    public async Task<ServiceTokenResponse> GetServiceTokenAsync(ServiceTokenRequest request)
+
+    public async Task<ErrorOr<ServiceTokenResponse>> GetServiceTokenAsync(ServiceTokenRequest request)
     {
         if (!_jwtServicesSettings.JwtSecretTokenPairs.TryGetValue(request.ServiceId, out var serviceSecret))
         {
-            throw new UnauthorizedAccessException();
+            return Error.Unauthorized("ServiceNotRegistered", "The requested service ID is not registered.");
         }
 
         if (request.ServiceSecret != serviceSecret)
         {
-            throw new UnauthorizedAccessException();
+            return Error.Unauthorized("InvalidSecret", "Invalid service credentials.");
         }
 
         var jwtServiceCredentials = new JwtServiceCredentials
@@ -113,7 +109,7 @@ public class AuthService : IAuthService
         return serviceTokenResponse;
     }
 
-    public async Task<RefreshTokenResponse> RefreshTokenAsync(RefreshTokenRequest request, int userId)
+    public async Task<ErrorOr<RefreshTokenResponse>> RefreshTokenAsync(RefreshTokenRequest request, int userId)
     {
         var refreshToken = _refreshTokenRepository
             .GetAll()
@@ -121,17 +117,17 @@ public class AuthService : IAuthService
 
         if (refreshToken == null)
         {
-            throw new RpcException(new Status(StatusCode.Unauthenticated, "Token does not exist."));
+            return Error.Unauthorized("RefreshToken.NotFound", "Refresh token does not exist.");
         }
 
         if (!refreshToken.IsActive)
         {
-            throw new RpcException(new Status(StatusCode.Unauthenticated, "Token has expired."));
+            return Error.Unauthorized("RefreshToken.Inactive", "Refresh token has expired.");
         }
 
         if (!_jwtServicesSettings.JwtSecretTokenPairs.TryGetValue(JwtTokenConstants.UserAudience, out var serviceSecret))
         {
-            throw new UnauthorizedAccessException();
+            return Error.Unauthorized("JwtConfig.MissingSecret", "JWT secret for user audience is not configured.");
         }
 
         var jwtServiceCredentials = new JwtServiceCredentials
@@ -146,11 +142,11 @@ public class AuthService : IAuthService
 
         if (user == null)
         {
-            _logger.LogError($"{nameof(GetSignInAsync)} request. User with Id = {userId} doesn't exist!");
-            throw new BadRequestException($"User with Id = {userId} doesn't exist!");
+            _logger.LogError($"{nameof(RefreshTokenAsync)} request. User with Id = {userId} doesn't exist!");
+            return Error.NotFound("User.NotFound", $"User with Id = {userId} doesn't exist.");
         }
 
-        // if refresh token can survive an other access token 
+        // if refresh token is still valid for another access token
         if (refreshToken.ExpiresAt > DateTime.UtcNow.AddSeconds(_jwtServicesSettings.SecondsUntilExpireUserJwtToken))
         {
             var accessToken = await _tokenService.CreateAccessTokenForUserAsync(jwtServiceCredentials, user);
@@ -159,8 +155,8 @@ public class AuthService : IAuthService
             {
                 AccessToken = accessToken.AccessToken,
                 AccessTokenExpiresInSeconds = (int)(accessToken.AccessTokenExpiresAt - DateTime.UtcNow).TotalSeconds,
-                RefreshTokenExpiresInSeconds = (int)(refreshToken.ExpiresAt - DateTime.UtcNow).TotalSeconds,
-                RefreshToken = refreshToken.Token
+                RefreshToken = refreshToken.Token,
+                RefreshTokenExpiresInSeconds = (int)(refreshToken.ExpiresAt - DateTime.UtcNow).TotalSeconds
             };
         }
 
@@ -170,10 +166,11 @@ public class AuthService : IAuthService
         {
             AccessToken = accessRefreshTokenPair.AccessToken,
             AccessTokenExpiresInSeconds = (int)(accessRefreshTokenPair.AccessTokenExpiresAt - DateTime.UtcNow).TotalSeconds,
-            RefreshTokenExpiresInSeconds = (int)(accessRefreshTokenPair.RefreshTokenExpiresAt - DateTime.UtcNow).TotalSeconds,
-            RefreshToken = accessRefreshTokenPair.RefreshToken
+            RefreshToken = accessRefreshTokenPair.RefreshToken,
+            RefreshTokenExpiresInSeconds = (int)(accessRefreshTokenPair.RefreshTokenExpiresAt - DateTime.UtcNow).TotalSeconds
         };
     }
+
 
     #region Private
 

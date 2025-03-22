@@ -1,8 +1,9 @@
 ﻿using AuthenticationProto;
+using ErrorOr;
 
 namespace Service.Services.Base;
 
 public interface IUserService
 {
-    Task<int> CreateUserAsync(CreateUserRequest request);
+    Task<ErrorOr<int>> CreateUserAsync(CreateUserRequest request);
 }

@@ -5,6 +5,7 @@ using CulturalShare.Foundation.AspNetCore.Extensions.MiddlewareClasses;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
+using WebApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var logger = new LoggerConfiguration()
@@ -23,7 +24,8 @@ if (app.Environment.IsEnvironment("Test"))
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGrpcService<AuthenticationService>();
+app.MapGrpcService<AuthenticationGrpcService>();
+app.MapGrpcService<UserGrpcService>();
 
 app.UseMiddleware<HandlingExceptionsMiddleware>();
 
