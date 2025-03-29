@@ -1,4 +1,4 @@
-﻿namespace CulturalShare.Auth.Services.Model;
+﻿namespace Service.Model;
 
 public class RefreshToken
 {

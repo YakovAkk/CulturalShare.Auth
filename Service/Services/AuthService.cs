@@ -1,17 +1,16 @@
 ﻿using AuthenticationProto;
-using CulturalShare.Auth.Repositories.Repositories.Base;
-using CulturalShare.Auth.Services.Services.Base;
 using CulturalShare.Foundation.EntironmentHelper.Configurations;
+using DomainEntity.Configuration;
+using DomainEntity.Constants;
 using ErrorOr;
-using Infrastructure.Configuration;
-using Infrastructure.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Repository.Repositories.Base;
+using Repository.Repositories;
 using Service.Mapping;
 using Service.Model;
+using Service.Services.Base;
 
-namespace CulturalShare.Auth.Services.Services;
+namespace Service.Services;
 
 public class AuthService : IAuthService
 {
@@ -38,7 +37,7 @@ public class AuthService : IAuthService
         _refreshTokenRepository = refreshTokenRepository;
     }
 
-    public async Task<ErrorOr<AccessAndRefreshTokenViewModel>> GetSignInAsync(SignInRequest request)
+    public async Task<ErrorOr<SignInResponse>> GetSignInAsync(SignInRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Password))
         {
@@ -76,7 +75,9 @@ public class AuthService : IAuthService
 
         var accessTokenViewModel = await _tokenService.CreateAccessAndRefreshTokensForUserAsync(jwtServiceCredentials, user);
 
-        return accessTokenViewModel;
+        var signInResponse = accessTokenViewModel.ToSignInResponse();
+
+        return signInResponse;
     }
 
 

@@ -1,8 +1,7 @@
-﻿using CulturalShare.Auth.Domain.Entities;
-using DomainEntity.Entities;
+﻿using DomainEntity.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace CulturalShare.Auth.Domain.Context;
+namespace Postgres.Infrastructure;
 
 public class AuthDbContext : DbContext
 {

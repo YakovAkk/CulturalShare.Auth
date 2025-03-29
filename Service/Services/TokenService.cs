@@ -1,19 +1,17 @@
-﻿using CulturalShare.Auth.Domain.Entities;
-using CulturalShare.Auth.Services.Model;
-using CulturalShare.Auth.Services.Services.Base;
-using CulturalShare.Foundation.EntironmentHelper.Configurations;
+﻿using CulturalShare.Foundation.EntironmentHelper.Configurations;
+using DomainEntity.Configuration;
 using DomainEntity.Entities;
-using Infrastructure.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using Repository.Repositories.Base;
+using Repository.Repositories;
 using Service.Model;
+using Service.Services.Base;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace CulturalShare.Auth.Services.Services;
+namespace Service.Services;
 
 public class TokenService : ITokenService
 {

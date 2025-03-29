@@ -1,9 +1,8 @@
-﻿using DomainEntity.Entities;
-using MX.Database.Entities;
+﻿using MX.Database.Entities;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace CulturalShare.Auth.Domain.Entities;
+namespace DomainEntity.Entities;
 
 public class UserEntity : BaseEntity<int>
 {

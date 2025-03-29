@@ -1,9 +1,8 @@
-﻿using CulturalShare.Auth.Domain.Entities;
-using CulturalShare.Auth.Services.Model;
-using Infrastructure.Configuration;
+﻿using DomainEntity.Configuration;
+using DomainEntity.Entities;
 using Service.Model;
 
-namespace CulturalShare.Auth.Services.Services.Base;
+namespace Service.Services.Base;
 
 public interface ITokenService
 {

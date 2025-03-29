@@ -1,4 +1,4 @@
-﻿namespace CulturalShare.Auth.Services.Services.Base;
+﻿namespace Service.Services.Base;
 
 public interface IPasswordService
 {

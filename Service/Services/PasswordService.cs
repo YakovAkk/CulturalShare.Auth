@@ -1,8 +1,8 @@
-﻿using CulturalShare.Auth.Services.Services.Base;
+﻿using Service.Services.Base;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace CulturalShare.Auth.Services.Services;
+namespace Service.Services;
 
 public class PasswordService : IPasswordService
 {

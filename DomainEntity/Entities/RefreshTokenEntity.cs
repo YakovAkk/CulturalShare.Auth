@@ -1,5 +1,4 @@
-﻿using CulturalShare.Auth.Domain.Entities;
-using MX.Database.Entities;
+﻿using MX.Database.Entities;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 

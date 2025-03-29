@@ -1,10 +1,8 @@
 ﻿using AuthenticationProto;
-using CulturalShare.Auth.Domain.Entities;
-using CulturalShare.Auth.Repositories.Repositories.Base;
-using CulturalShare.Auth.Services.Services.Base;
-using CultureShare.Foundation.Exceptions;
+using DomainEntity.Entities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
+using Repository.Repositories;
 using Service.Services.Base;
 
 namespace Service.Services;

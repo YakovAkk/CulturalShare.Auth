@@ -1,7 +1,7 @@
 ﻿using AuthenticationProto;
-using CulturalShare.Auth.Services.Model;
 using Riok.Mapperly.Abstractions;
 using RTools_NTS.Util;
+using Service.Model;
 
 namespace Service.Mapping;
 
@@ -19,5 +19,19 @@ public static partial class CommonMapper
         };
 
         return serviceTokenResponse;
+    }
+
+    public static SignInResponse ToSignInResponse(this AccessAndRefreshTokenViewModel token) 
+    {
+        var accessTokenRemainingTime = token.AccessTokenExpiresAt - DateTime.UtcNow;
+        var refreshTokenRemainingTime = token.RefreshTokenExpiresAt - DateTime.UtcNow;
+
+        return new SignInResponse
+        {
+            AccessToken = token.AccessToken,
+            AccessTokenExpiresInSeconds = (int)accessTokenRemainingTime.TotalSeconds,
+            RefreshToken = token.RefreshToken,
+            RefreshTokenExpiresInSeconds = (int)refreshTokenRemainingTime.TotalSeconds
+        };
     }
 }

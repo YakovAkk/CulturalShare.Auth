@@ -1,8 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore;
-using CulturalShare.Auth.Domain.Context;
 
-namespace Infrastructure;
+namespace Postgres.Infrastructure;
 
 internal class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AuthDbContext>
 {

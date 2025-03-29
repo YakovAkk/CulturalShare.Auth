@@ -1,6 +1,4 @@
-﻿using CulturalShare.Auth.Services.Model;
-
-namespace Service.Model;
+﻿namespace Service.Model;
 
 public class AccessAndRefreshTokenViewModel : AccessTokenViewModel
 {

@@ -1,11 +1,9 @@
-using CulturalShare.Auth.API.Configuration.Base;
-using CulturalShare.Auth.API.DependencyInjection;
-using CulturalShare.Auth.Services;
-using CulturalShare.Foundation.AspNetCore.Extensions.MiddlewareClasses;
+using Dependency.Infranstructure.Configuration.Base;
+using Dependency.Infranstructure.DependencyInjection;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
-using WebApi.Services;
+using WebApi.GrpcServices;
 
 var builder = WebApplication.CreateBuilder(args);
 var logger = new LoggerConfiguration()
@@ -26,8 +24,6 @@ app.UseAuthorization();
 
 app.MapGrpcService<AuthenticationGrpcService>();
 app.MapGrpcService<UserGrpcService>();
-
-app.UseMiddleware<HandlingExceptionsMiddleware>();
 
 app.MapHealthChecks("/health", new HealthCheckOptions()
 {
