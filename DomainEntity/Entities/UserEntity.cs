@@ -21,4 +21,18 @@ public class UserEntity : BaseEntity<int>
 
     [JsonIgnore]
     public ICollection<RefreshTokenEntity> RefreshTokens { get; set; }
+
+    private UserEntity()
+    {
+
+    }
+
+    public UserEntity(string firstName, string lastName, string email, byte[] passwordHash, byte[] passwordSalt)
+    {
+        FirstName = firstName.Trim();
+        LastName = lastName.Trim();
+        Email = email.Trim();
+        PasswordHash = passwordHash;
+        PasswordSalt = passwordSalt;
+    }
 }

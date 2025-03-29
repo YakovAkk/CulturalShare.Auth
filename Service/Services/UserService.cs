@@ -34,18 +34,9 @@ public class UserService : IUserService
             return Error.Validation("Password must not be empty!");
         }
 
-        var email = request.Email.Trim();
-
         _passwordService.CreatePasswordHash(request.Password, out var passwordHash, out var passwordSalt);
 
-        var user = new UserEntity()
-        {
-            Email = email,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            PasswordHash = passwordHash,
-            PasswordSalt = passwordSalt,
-        };
+        var user = new UserEntity(request.FirstName, request.LastName, request.Email, passwordHash, passwordSalt);
 
         var result = _userRepository.Add(user);
         await _userRepository.SaveChangesAsync();

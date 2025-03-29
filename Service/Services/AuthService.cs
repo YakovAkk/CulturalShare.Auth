@@ -8,6 +8,7 @@ using Infrastructure.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Repository.Repositories.Base;
+using Service.Mapping;
 using Service.Model;
 
 namespace CulturalShare.Auth.Services.Services;
@@ -98,13 +99,8 @@ public class AuthService : IAuthService
         };
 
         var token = await _tokenService.CreateAccessTokenForServiceAsync(jwtServiceCredentials);
-        var totalSeconds = (int)(token.AccessTokenExpiresAt - DateTime.UtcNow).TotalSeconds;
 
-        var serviceTokenResponse = new ServiceTokenResponse
-        {
-            AccessToken = token.AccessToken,
-            ExpiresInSeconds = totalSeconds
-        };
+        var serviceTokenResponse = token.ToServiceTokenResponse();
 
         return serviceTokenResponse;
     }
@@ -170,9 +166,4 @@ public class AuthService : IAuthService
             RefreshTokenExpiresInSeconds = (int)(accessRefreshTokenPair.RefreshTokenExpiresAt - DateTime.UtcNow).TotalSeconds
         };
     }
-
-
-    #region Private
-
-    #endregion
 }

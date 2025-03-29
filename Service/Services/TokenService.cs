@@ -38,11 +38,7 @@ public class TokenService : ITokenService
         var accessToken = CreateAccessTokenForServiceInternal(jwtServiceCredentials);
         var token = new JwtSecurityTokenHandler().WriteToken(accessToken);
 
-        var accessTokenViewModel = new AccessTokenViewModel()
-        {
-            AccessToken = token,
-            AccessTokenExpiresAt = accessToken.ValidTo,
-        };
+        var accessTokenViewModel = new AccessTokenViewModel(token, accessToken.ValidTo);
 
         return Task.FromResult(accessTokenViewModel);
     }
@@ -54,11 +50,7 @@ public class TokenService : ITokenService
         var accessToken = CreateAccessTokenForUserInternal(jwtServiceCredentials, user);
         var token = new JwtSecurityTokenHandler().WriteToken(accessToken);
 
-        var accessTokenViewModel = new AccessTokenViewModel()
-        {
-            AccessToken = token,
-            AccessTokenExpiresAt = accessToken.ValidTo,
-        };
+        var accessTokenViewModel = new AccessTokenViewModel(token, accessToken.ValidTo);
 
         return Task.FromResult(accessTokenViewModel);
     }
@@ -75,13 +67,7 @@ public class TokenService : ITokenService
         var refreshToken = refreshTokenTask.Result;
         var accessToken = accessTokenTask.Result;
 
-        return new AccessAndRefreshTokenViewModel()
-        {
-            RefreshToken = refreshToken.Token,
-            AccessToken = accessToken.AccessToken,
-            AccessTokenExpiresAt = accessToken.AccessTokenExpiresAt,
-            RefreshTokenExpiresAt = refreshToken.ExpiresAt
-        };
+        return new AccessAndRefreshTokenViewModel(accessToken.AccessToken, accessToken.AccessTokenExpiresAt, refreshToken.Token, refreshToken.ExpiresAt);
     }
 
     #region Private
@@ -100,16 +86,12 @@ public class TokenService : ITokenService
         _refreshTokenRepository.Add(refreshToken);
         await _refreshTokenRepository.SaveChangesAsync();
 
-        return new RefreshToken()
-        {
-            Token = refreshToken.Token,
-            ExpiresAt = refreshToken.ExpiresAt,
-        };
+        return new RefreshToken(refreshToken.Token, refreshToken.ExpiresAt);
     }
 
     private JwtSecurityToken CreateAccessTokenForUserInternal(JwtServiceCredentials jwtServiceCredentials, UserEntity user)
     {
-        var expiresAt = DateTime.UtcNow.AddSeconds(_jwtServicesSettings.SecondsUntilExpireServiceJwtToken);
+        var expiresAt = DateTime.UtcNow.AddSeconds(_jwtServicesSettings.SecondsUntilExpireUserJwtToken);
 
         var claims = new List<Claim>()
         {
@@ -117,16 +99,7 @@ public class TokenService : ITokenService
             new Claim(ClaimTypes.Email, user.Email)
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtServiceCredentials.ServiceSecret));
-
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-
-        var token = new JwtSecurityToken(
-            issuer: _jwtServicesSettings.Issuer,
-            claims: claims,
-            expires: expiresAt,
-            signingCredentials: creds,
-            audience: jwtServiceCredentials.ServiceId);
+        var token = CreateJwtSecurityToken(jwtServiceCredentials, expiresAt, claims);
 
         return token;
     }
@@ -141,6 +114,13 @@ public class TokenService : ITokenService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
+        var token = CreateJwtSecurityToken(jwtServiceCredentials, expiresAt, claims);
+
+        return token;
+    }
+
+    private JwtSecurityToken CreateJwtSecurityToken(JwtServiceCredentials jwtServiceCredentials, DateTime expiresAt, List<Claim> claims)
+    {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtServiceCredentials.ServiceSecret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
 
@@ -151,7 +131,6 @@ public class TokenService : ITokenService
             expires: expiresAt,
             signingCredentials: credentials
         );
-
         return token;
     }
 
