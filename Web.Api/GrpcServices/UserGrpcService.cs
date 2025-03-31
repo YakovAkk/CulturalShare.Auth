@@ -11,7 +11,7 @@ public class UserGrpcService : AuthenticationProto.UserGrpcService.UserGrpcServi
     private readonly ILogger<UserGrpcService> _logger;
 
     public UserGrpcService(
-        IUserService userService, 
+        IUserService userService,
         ILogger<UserGrpcService> logger)
     {
         _userService = userService;

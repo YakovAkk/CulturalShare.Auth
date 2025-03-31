@@ -16,11 +16,10 @@ public class AuthDbContext : DbContext
     {
         modelBuilder.Entity<RefreshTokenEntity>(entity =>
         {
-            // Define computed column "IsExpired" in database
             entity.Property(b => b.IsRevoked)
             .HasComputedColumnSql("\"RevokedAt\" IS NOT NULL", stored: true);
 
-            entity.HasIndex(e => new {e.Token , e.UserId}).IsUnique();
+            entity.HasIndex(e => new { e.Token, e.UserId }).IsUnique();
         });
     }
 }

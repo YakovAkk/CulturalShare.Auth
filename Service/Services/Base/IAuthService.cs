@@ -1,6 +1,5 @@
 ﻿using AuthenticationProto;
 using ErrorOr;
-using Service.Model;
 
 namespace Service.Services.Base;
 

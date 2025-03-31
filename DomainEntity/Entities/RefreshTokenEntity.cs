@@ -26,7 +26,7 @@ public class RefreshTokenEntity : BaseEntity<int>
 
     private RefreshTokenEntity()
     {
-            
+
     }
 
     public RefreshTokenEntity(string token, int secondsUntilExpire, int userId)

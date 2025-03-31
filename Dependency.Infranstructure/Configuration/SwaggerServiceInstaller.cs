@@ -1,9 +1,9 @@
-﻿using Microsoft.OpenApi.Models;
-using System.Reflection;
-using Serilog.Core;
+﻿using Dependency.Infranstructure.Configuration.Base;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Dependency.Infranstructure.Configuration.Base;
+using Microsoft.OpenApi.Models;
+using Serilog.Core;
+using System.Reflection;
 
 namespace Dependency.Infranstructure.Configuration;
 

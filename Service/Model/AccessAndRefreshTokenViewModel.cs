@@ -3,9 +3,9 @@
 public class AccessAndRefreshTokenViewModel : AccessTokenViewModel
 {
     public AccessAndRefreshTokenViewModel(
-        string accessToken, 
-        DateTime accessTokenExpiresAt, 
-        string refreshToken, 
+        string accessToken,
+        DateTime accessTokenExpiresAt,
+        string refreshToken,
         DateTime refreshTokenExpiresAt) : base(accessToken, accessTokenExpiresAt)
     {
         RefreshToken = refreshToken;

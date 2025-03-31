@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Repository.Repositories;
 using Service.Mapping;
-using Service.Model;
 using Service.Services.Base;
 
 namespace Service.Services;
@@ -39,11 +38,6 @@ public class AuthService : IAuthService
 
     public async Task<ErrorOr<SignInResponse>> GetSignInAsync(SignInRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Password))
-        {
-            return Error.Validation("EmptyPassword", "Password must not be empty!");
-        }
-
         var user = await _userRepository
             .GetAll()
             .FirstOrDefaultAsync(x => x.Email == request.Email);

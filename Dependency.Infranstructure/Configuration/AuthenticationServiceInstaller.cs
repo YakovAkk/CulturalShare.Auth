@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Serilog.Core;
-using CulturalShare.Foundation.Authorization.AuthenticationExtension;
-using CulturalShare.Foundation.EntironmentHelper.Configurations;
+﻿using CulturalShare.Foundation.Authorization.AuthenticationExtension;
 using CulturalShare.Foundation.EntironmentHelper.EnvHelpers;
+using Dependency.Infranstructure.Configuration.Base;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Dependency.Infranstructure.Configuration.Base;
+using Serilog.Core;
 
 namespace Dependency.Infranstructure.Configuration;
 

@@ -1,6 +1,7 @@
 ﻿using AuthenticationProto;
 using DomainEntity.Entities;
 using ErrorOr;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Repository.Repositories;
 using Service.Services.Base;
@@ -14,8 +15,8 @@ public class UserService : IUserService
     private readonly IUserRepository _userRepository;
 
     public UserService(
-        ILogger<UserService> logger, 
-        IPasswordService passwordService, 
+        ILogger<UserService> logger,
+        IPasswordService passwordService,
         IUserRepository userRepository)
     {
         _logger = logger;
@@ -27,12 +28,7 @@ public class UserService : IUserService
     {
         _logger.LogDebug($"{nameof(CreateUserAsync)} request. User = {request.FirstName} {request.LastName} registered");
 
-        if (string.IsNullOrEmpty(request.Password))
-        {
-            return Error.Validation("Password must not be empty!");
-        }
-
-        _passwordService.CreatePasswordHash(request.Password, out var passwordHash, out var passwordSalt);
+         (byte[] passwordHash, byte[] passwordSalt) = _passwordService.CreatePasswordHash(request.Password);
 
         var user = new UserEntity(request.FirstName, request.LastName, request.Email, passwordHash, passwordSalt);
 

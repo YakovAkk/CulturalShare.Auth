@@ -1,8 +1,8 @@
-﻿using Serilog.Core;
-using CulturalShare.Foundation.EntironmentHelper.EnvHelpers;
+﻿using CulturalShare.Foundation.EntironmentHelper.EnvHelpers;
+using Dependency.Infranstructure.Configuration.Base;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Dependency.Infranstructure.Configuration.Base;
+using Serilog.Core;
 
 namespace Dependency.Infranstructure.Configuration;
 
@@ -19,4 +19,3 @@ public class HealthCheckServiceInstaller : IServiceInstaller
         logger.Information($"{nameof(HealthCheckServiceInstaller)} installed.");
     }
 }
- 

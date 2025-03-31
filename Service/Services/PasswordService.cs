@@ -15,12 +15,14 @@ public class PasswordService : IPasswordService
         }
     }
 
-    public void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+    public (byte[] passwordHash, byte[] passwordSalt) CreatePasswordHash(string password)
     {
         using (var hmac = new HMACSHA512())
         {
-            passwordSalt = hmac.Key;
-            passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+           var passwordSalt = hmac.Key;
+           var passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+
+            return (passwordHash, passwordSalt);
         }
     }
 }

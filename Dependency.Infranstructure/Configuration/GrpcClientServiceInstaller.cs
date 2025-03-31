@@ -1,8 +1,8 @@
-﻿using Serilog.Core;
-using CulturalShare.Foundation.AspNetCore.Extensions.GrpcInterceptors;
+﻿using CulturalShare.Foundation.AspNetCore.Extensions.GrpcInterceptors;
+using Dependency.Infranstructure.Configuration.Base;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Dependency.Infranstructure.Configuration.Base;
+using Serilog.Core;
 
 namespace Dependency.Infranstructure.Configuration;
 

@@ -50,7 +50,7 @@ public class AuthenticationGrpcService : AuthenticationProto.AuthenticationGrpcS
         var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
 
         if (userIdClaim == null)
-        { 
+        {
             throw new RpcException(new Status(StatusCode.Unauthenticated, "User ID claim not found."));
         }
 
