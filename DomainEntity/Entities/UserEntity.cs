@@ -1,5 +1,6 @@
 ﻿using MX.Database.Entities;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace DomainEntity.Entities;
@@ -34,4 +35,7 @@ public class UserEntity : BaseEntity<int>
         PasswordHash = passwordHash;
         PasswordSalt = passwordSalt;
     }
+
+    [JsonIgnore]
+    public ICollection<UserSettingsEntity> Settings { get; set; }
 }

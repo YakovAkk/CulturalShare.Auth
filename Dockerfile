@@ -7,43 +7,38 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
-ARG YakovAkk
-ARG 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
+ARG GITHUB_USERNAME
+ENV GITHUB_USERNAME=$GITHUB_USERNAME
+ARG GITHUB_TOKEN
+ENV GITHUB_TOKEN=$GITHUB_TOKEN
 
 WORKDIR /src
 
 # Copy nuget.config and set GitHub credentials
-COPY ./nuget.config ./
-RUN sed -i "s/%GITHUB_USERNAME%/$GITHUB_USERNAME/g" nuget.config
-RUN sed -i "s/%GITHUB_TOKEN%/$GITHUB_TOKEN/g" nuget.config
+COPY NuGet.Config .
+RUN sed -i "s/%GITHUB_USERNAME%/${GITHUB_USERNAME}/g" NuGet.Config
+RUN sed -i "s/%GITHUB_TOKEN%/${GITHUB_TOKEN}/g" NuGet.Config
 
-# Copy project files
-COPY ["./CulturalShare.Auth/CulturalShare.Auth.API.csproj", "CulturalShare.Auth/"]
-COPY ["./CulturalShare.Auth.Domain/CulturalShare.Auth.Domain.csproj", "CulturalShare.Auth.Domain/"]
-COPY ["./CulturalShare.Auth.Repositories/CulturalShare.Auth.Repositories.csproj", "CulturalShare.Auth.Repositories/"]
-COPY ["./CulturalShare.Auth.Services/CulturalShare.Auth.Services.csproj", "CulturalShare.Auth.Services/"]
-
-# Restore dependencies
-RUN dotnet restore "./CulturalShare.Auth/CulturalShare.Auth.API.csproj"
-
-# Copy the rest of the project files
+# This stage is used to build the service project
+COPY ["Web.Api/WebApi.csproj", "Web.Api/"]
+COPY ["Dependency.Infranstructure/Dependency.Infranstructure.csproj", "Dependency.Infranstructure/"]
+COPY ["Infrastructure/Postgres.Infrastructure.csproj", "Infrastructure/"]
+COPY ["DomainEntity/DomainEntity.csproj", "DomainEntity/"]
+COPY ["Repositories.Infrastructure/Repositories.Infrastructure.csproj", "Repositories.Infrastructure/"]
+COPY ["Repository/Repository.csproj", "Repository/"]
+COPY ["Service/Service.csproj", "Service/"]
+RUN dotnet restore "./Web.Api/WebApi.csproj"
 COPY . .
+WORKDIR "/src/Web.Api"
+RUN dotnet build "./WebApi.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-WORKDIR "/src/CulturalShare.Auth"
-
-# Build the project
-RUN dotnet build "./CulturalShare.Auth.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
-
+# This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "./WebApi.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-# Publish the project
-RUN dotnet publish "./CulturalShare.Auth.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-
+# This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
-
-# Copy the published output to the final image
 COPY --from=publish /app/publish .
-
-ENTRYPOINT ["dotnet", "CulturalShare.Auth.API.dll"]
+ENTRYPOINT ["dotnet", "WebApi.dll"]

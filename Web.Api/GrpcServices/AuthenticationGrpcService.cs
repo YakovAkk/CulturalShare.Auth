@@ -1,5 +1,7 @@
 ﻿using AuthenticationProto;
 using CulturalShare.Common.Helper.Extensions;
+using CulturalShare.Foundation.AspNetCore.Extensions.Helpers;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Service.Services.Base;
@@ -11,13 +13,16 @@ public class AuthenticationGrpcService : AuthenticationProto.AuthenticationGrpcS
 {
     private readonly IAuthService _authService;
     private readonly ILogger<AuthenticationGrpcService> _logger;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public AuthenticationGrpcService(
         IAuthService authService,
-        ILogger<AuthenticationGrpcService> log)
+        ILogger<AuthenticationGrpcService> log,
+        IHttpContextAccessor httpContextAccessor)
     {
         _authService = authService;
         _logger = log;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public override async Task<SignInResponse> SignIn(SignInRequest request, ServerCallContext context)
@@ -25,6 +30,18 @@ public class AuthenticationGrpcService : AuthenticationProto.AuthenticationGrpcS
         _logger.LogDebug($"{nameof(SignIn)} request. Email = {request.Email}");
 
         var accessTokenResult = await _authService.GetSignInAsync(request);
+
+        accessTokenResult.ThrowRpcExceptionBasedOnErrorIfNeeded();
+
+        return accessTokenResult.Value;
+    }
+
+    [Authorize]
+    public override async Task<Empty> SignOut(SignOutRequest request, ServerCallContext context)
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+
+        var accessTokenResult = await _authService.SignOutAsync(httpContext);
 
         accessTokenResult.ThrowRpcExceptionBasedOnErrorIfNeeded();
 

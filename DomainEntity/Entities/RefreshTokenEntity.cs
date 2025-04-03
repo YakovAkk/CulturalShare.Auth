@@ -36,4 +36,9 @@ public class RefreshTokenEntity : BaseEntity<int>
         ExpiresAt = DateTime.UtcNow.AddSeconds(secondsUntilExpire);
         UserId = userId;
     }
+
+    public void Revoke()
+    {
+        RevokedAt = DateTime.UtcNow;
+    }
 }

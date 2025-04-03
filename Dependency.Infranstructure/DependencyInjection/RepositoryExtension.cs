@@ -10,6 +10,7 @@ public static class RepositoryExtension
     {
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
 
         return services;
     }
