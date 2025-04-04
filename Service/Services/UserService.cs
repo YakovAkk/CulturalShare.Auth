@@ -2,13 +2,10 @@
 using DomainEntity.Entities;
 using ErrorOr;
 using Google.Protobuf.WellKnownTypes;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Repository.Repositories;
 using Service.Services.Base;
-using System.Security.Claims;
 
 namespace Service.Services;
 
@@ -18,22 +15,23 @@ public class UserService : IUserService
     private readonly IPasswordService _passwordService;
     private readonly IUserRepository _userRepository;
     private readonly IUserSettingsRepository _userSettingsRepository;
+    private readonly IFollowerEntityRepository _followerEntityRepository;
+    private readonly IRestrictedUserEntityRepository _restrictedUserEntityRepository;
 
     public UserService(
         ILogger<UserService> logger,
         IPasswordService passwordService,
         IUserRepository userRepository,
-        IUserSettingsRepository userSettingsRepository)
+        IUserSettingsRepository userSettingsRepository,
+        IFollowerEntityRepository followerEntityRepository,
+        IRestrictedUserEntityRepository restrictedUserEntityRepository)
     {
         _logger = logger;
         _passwordService = passwordService;
         _userRepository = userRepository;
         _userSettingsRepository = userSettingsRepository;
-    }
-
-    public Task<ErrorOr<Empty>> AllowUserAsync(AllowUserRequest request)
-    {
-        throw new NotImplementedException();
+        _followerEntityRepository = followerEntityRepository;
+        _restrictedUserEntityRepository = restrictedUserEntityRepository;
     }
 
     public async Task<ErrorOr<int>> CreateUserAsync(CreateUserRequest request)
@@ -52,34 +50,128 @@ public class UserService : IUserService
         return user.Id;
     }
 
-    public Task<ErrorOr<Empty>> FollowUserAsync(FollowUserRequest request)
+    public async Task<ErrorOr<Empty>> FollowUserAsync(FollowUserRequest request, int userId)
     {
-        throw new NotImplementedException();
-    }
-
-    public Task<ErrorOr<Empty>> RestrictUserAsync(RestrictUserRequest request)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<ErrorOr<SearchUserResponse>> SearchUserByNameAsync(SearchUserRequest request)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task<ErrorOr<Empty>> ToggleNotificationsAsync(ToggleNotificationsRequest request, HttpContext httpContext)
-    {
-        _logger.LogInformation("SignOut request received");
-
-        var userIdResult = ExtractUserIdFromContext(httpContext);
-
-        if (userIdResult.IsError)
+        if (request.FolloweeId == userId)
         {
-            _logger.LogWarning("SignOut failed: {Error}", userIdResult.FirstError.Description);
-            return userIdResult.Errors;
+            return Error.Conflict("You cannot follow yourself.");
         }
 
-        var userId = userIdResult.Value;
+        var existingFollow = await _followerEntityRepository
+            .GetAll()
+            .FirstOrDefaultAsync(x => x.FollowerId == userId && x.FolloweeId == request.FolloweeId);
+
+        if (existingFollow is not null)
+        {
+            if (existingFollow.IsFollow)
+            {
+                return Error.Conflict("You are already following this user.");
+            }
+
+            existingFollow.Follow();
+            _followerEntityRepository.Update(existingFollow);
+        }
+        else
+        {
+            var newFollow = new FollowerEntity(userId, request.FolloweeId);
+            _followerEntityRepository.Add(newFollow);
+        }
+
+        await _followerEntityRepository.SaveChangesAsync();
+        return new Empty();
+    }
+
+    public async Task<ErrorOr<Empty>> UnfollowUserAsync(UnfollowUserRequest request, int userId)
+    {
+        var followRecord = await _followerEntityRepository
+            .GetAll()
+            .FirstOrDefaultAsync(x => x.FollowerId == userId && x.FolloweeId == request.FolloweeId);
+
+        if (followRecord is null || !followRecord.IsFollow)
+        {
+            return Error.Conflict("You are not following this user.");
+        }
+
+        followRecord.Unfollow();
+        _followerEntityRepository.Update(followRecord);
+        await _followerEntityRepository.SaveChangesAsync();
+
+        return new Empty();
+    }
+
+    public async Task<ErrorOr<Empty>> AllowUserAsync(AllowUserRequest request, int userId)
+    {
+        var restriction = await _restrictedUserEntityRepository
+            .GetAll()
+            .FirstOrDefaultAsync(x => x.UserId == userId && x.RestrictedUserId == request.UserIdToAllowObserving);
+
+        if (restriction is null || !restriction.IsRestricted)
+        {
+            return Error.Conflict("You are not restricting this user.");
+        }
+
+        restriction.Unrestrict();
+        _restrictedUserEntityRepository.Update(restriction);
+        await _restrictedUserEntityRepository.SaveChangesAsync();
+
+        return new Empty();
+    }
+
+    public async Task<ErrorOr<Empty>> RestrictUserAsync(RestrictUserRequest request, int userId)
+    {
+        if (request.UserIdToRestrict == userId)
+        {
+            return Error.Conflict("You cannot restrict yourself.");
+        }
+
+        var restriction = await _restrictedUserEntityRepository
+            .GetAll()
+            .FirstOrDefaultAsync(x => x.UserId == userId && x.RestrictedUserId == request.UserIdToRestrict);
+
+        if (restriction is not null)
+        {
+            if (restriction.IsRestricted)
+            {
+                return Error.Conflict("You are already restricting this user.");
+            }
+
+            restriction.Restrict();
+            _restrictedUserEntityRepository.Update(restriction);
+        }
+        else
+        {
+            var newRestriction = new RestrictedUserEntity(userId, request.UserIdToRestrict);
+            _restrictedUserEntityRepository.Add(newRestriction);
+        }
+
+        await _restrictedUserEntityRepository.SaveChangesAsync();
+        return new Empty();
+    }
+
+    public async Task<ErrorOr<SearchUserResponse>> SearchUserByNameAsync(SearchUserRequest request)
+    {
+        var users = await _userRepository.GetAll()
+            .Where(x => x.FirstName.Contains(request.Name) || x.LastName.Contains(request.Name))
+            .Select(x => new UserInfo
+            {
+                Id = x.Id,
+                FirstName = x.FirstName,
+                LastName = x.LastName,
+                Email = x.Email
+            })
+            .ToListAsync();
+
+        var result = new SearchUserResponse
+        {
+            Users = { users }
+        };
+
+        return result;
+    }
+
+    public async Task<ErrorOr<Empty>> ToggleNotificationsAsync(ToggleNotificationsRequest request, int userId)
+    {
+        _logger.LogInformation($"{nameof(ToggleNotificationsAsync)} request received");
 
         var userSettings = await _userSettingsRepository
             .GetAll()
@@ -101,29 +193,4 @@ public class UserService : IUserService
         return new Empty();
     }
 
-    public Task<ErrorOr<Empty>> UnfollowUserAsync(UnfollowUserRequest request)
-    {
-        throw new NotImplementedException();
-    }
-
-    #region Private
-
-    private ErrorOr<int> ExtractUserIdFromContext(HttpContext? httpContext)
-    {
-        if (httpContext?.User?.Identity?.IsAuthenticated != true)
-        {
-            return Error.Unauthorized("Unauthorized access");
-        }
-
-        var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (!int.TryParse(userIdClaim, out var userId))
-        {
-            return Error.Unauthorized("Invalid user identifier");
-        }
-
-        return userId;
-    }
-
-    #endregion
 }

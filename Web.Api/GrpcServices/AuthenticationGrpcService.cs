@@ -1,6 +1,5 @@
 ﻿using AuthenticationProto;
 using CulturalShare.Common.Helper.Extensions;
-using CulturalShare.Foundation.AspNetCore.Extensions.Helpers;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;

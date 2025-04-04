@@ -1,5 +1,6 @@
 ﻿using AuthenticationProto;
 using CulturalShare.Common.Helper.Extensions;
+using CulturalShare.Foundation.AspNetCore.Extensions.Helpers;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
@@ -38,7 +39,9 @@ public class UserGrpcService : AuthenticationProto.UserGrpcService.UserGrpcServi
     [Authorize]
     public override async Task<Empty> AllowUser(AllowUserRequest request, ServerCallContext context)
     {
-        var result = await _userService.AllowUserAsync(request);
+        var userId = HttpHelper.GetUserIdOrThrowRpcException(_httpContextAccessor.HttpContext);
+
+        var result = await _userService.AllowUserAsync(request, userId);
 
         result.ThrowRpcExceptionBasedOnErrorIfNeeded();
 
@@ -48,7 +51,9 @@ public class UserGrpcService : AuthenticationProto.UserGrpcService.UserGrpcServi
     [Authorize]
     public override async Task<Empty> FollowUser(FollowUserRequest request, ServerCallContext context)
     {
-        var result = await _userService.FollowUserAsync(request);
+        var userId = HttpHelper.GetUserIdOrThrowRpcException(_httpContextAccessor.HttpContext);
+
+        var result = await _userService.FollowUserAsync(request, userId);
 
         result.ThrowRpcExceptionBasedOnErrorIfNeeded();
 
@@ -58,7 +63,9 @@ public class UserGrpcService : AuthenticationProto.UserGrpcService.UserGrpcServi
     [Authorize]
     public override async Task<Empty> UnfollowUser(UnfollowUserRequest request, ServerCallContext context)
     {
-        var result = await _userService.UnfollowUserAsync(request);
+        var userId = HttpHelper.GetUserIdOrThrowRpcException(_httpContextAccessor.HttpContext);
+
+        var result = await _userService.UnfollowUserAsync(request, userId);
 
         result.ThrowRpcExceptionBasedOnErrorIfNeeded();
 
@@ -68,7 +75,9 @@ public class UserGrpcService : AuthenticationProto.UserGrpcService.UserGrpcServi
     [Authorize]
     public override async Task<Empty> RestrictUser(RestrictUserRequest request, ServerCallContext context)
     {
-        var result = await _userService.RestrictUserAsync(request);
+        var userId = HttpHelper.GetUserIdOrThrowRpcException(_httpContextAccessor.HttpContext);
+
+        var result = await _userService.RestrictUserAsync(request, userId);
 
         result.ThrowRpcExceptionBasedOnErrorIfNeeded();
 
@@ -88,9 +97,9 @@ public class UserGrpcService : AuthenticationProto.UserGrpcService.UserGrpcServi
     [Authorize]
     public override async Task<Empty> ToggleNotifications(ToggleNotificationsRequest request, ServerCallContext context)
     {
-        var httpContext = _httpContextAccessor.HttpContext;
+        var userId = HttpHelper.GetUserIdOrThrowRpcException(_httpContextAccessor.HttpContext);
 
-        var result = await _userService.ToggleNotificationsAsync(request, httpContext);
+        var result = await _userService.ToggleNotificationsAsync(request, userId);
 
         result.ThrowRpcExceptionBasedOnErrorIfNeeded();
 

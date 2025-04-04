@@ -38,4 +38,10 @@ public class UserEntity : BaseEntity<int>
 
     [JsonIgnore]
     public ICollection<UserSettingsEntity> Settings { get; set; }
+
+    [JsonIgnore]
+    public ICollection<FollowerEntity> Followers { get; set; }
+
+    [JsonIgnore]
+    public ICollection<RestrictedUserEntity> RestrictedUsers { get; set; }
 }

@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="CulturalShare.Common.Helper" Version="8.0.26-CUL-20-v2" />
-    <PackageReference Include="culturalshare.foundation.entironmenthelper" Version="8.0.0-CUL-20-v9" />
+    <PackageReference Include="culturalshare.foundation.entironmenthelper" Version="8.0.0-CUL-20-v10" />
     <PackageReference Include="CulturalShare.Protos" Version="8.0.9-CUL-20-v13" />
     <PackageReference Include="CultureShare.Foundation.Exceptions" Version="8.0.1" />
     <PackageReference Include="ErrorOr" Version="2.0.1" />
