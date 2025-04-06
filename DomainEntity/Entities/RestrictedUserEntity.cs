@@ -1,12 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using MX.Database.Entities;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace DomainEntity.Entities;
 
-public class RestrictedUserEntity
+public class RestrictedUserEntity : BaseEntity<int>
 {
-    public int Id { get; set; }
-
     [ForeignKey(nameof(User))]
     public int UserId { get; set; }
 
@@ -28,6 +27,7 @@ public class RestrictedUserEntity
     {
         UserId = userId;
         RestrictedUserId = restrictedUserId;
+        Restrict();
     }
 
     public void Restrict()

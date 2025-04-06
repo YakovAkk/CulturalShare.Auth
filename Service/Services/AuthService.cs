@@ -1,4 +1,5 @@
 ﻿using AuthenticationProto;
+using CulturalShare.Foundation.Authorization.JwtServices;
 using CulturalShare.Foundation.EntironmentHelper.Configurations;
 using DomainEntity.Configuration;
 using DomainEntity.Constants;
@@ -12,8 +13,6 @@ using Repository.Repositories;
 using Service.Mapping;
 using Service.Model;
 using Service.Services.Base;
-using System.Linq;
-using System.Security.Claims;
 
 namespace Service.Services;
 
@@ -25,6 +24,7 @@ public class AuthService : IAuthService
     private readonly JwtServicesConfig _jwtServicesSettings;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IJwtBlacklistService _jwtBlacklistService;
 
     public AuthService(
         IPasswordService passwordService,
@@ -32,7 +32,8 @@ public class AuthService : IAuthService
         ITokenService tokenService,
         JwtServicesConfig jwtServicesSettings,
         IUserRepository userRepository,
-        IRefreshTokenRepository refreshTokenRepository)
+        IRefreshTokenRepository refreshTokenRepository,
+        IJwtBlacklistService jwtBlacklistService)
     {
         _passwordService = passwordService;
         _logger = logger;
@@ -40,6 +41,7 @@ public class AuthService : IAuthService
         _jwtServicesSettings = jwtServicesSettings;
         _userRepository = userRepository;
         _refreshTokenRepository = refreshTokenRepository;
+        _jwtBlacklistService = jwtBlacklistService;
     }
 
     public async Task<ErrorOr<SignInResponse>> GetSignInAsync(SignInRequest request)
@@ -72,6 +74,8 @@ public class AuthService : IAuthService
         var jwtServiceCredentials = jwtCredentialsResult.Value;
 
         var accessTokenViewModel = await _tokenService.CreateAccessAndRefreshTokensForUserAsync(jwtServiceCredentials, user);
+
+        await _jwtBlacklistService.RemoveUserFromBlacklistAsync(user.Id);
 
         var signInResponse = accessTokenViewModel.ToSignInResponse();
 
@@ -141,22 +145,14 @@ public class AuthService : IAuthService
         return GetAccessTokenWithNewRefresh(accessRefreshTokenPair);
     }
 
-    public async Task<ErrorOr<Empty>> SignOutAsync(HttpContext httpContext)
+    public async Task<ErrorOr<Empty>> SignOutAsync(int userId)
     {
         _logger.LogInformation("SignOut request received");
 
-        var userIdResult = ExtractUserIdFromContext(httpContext);
-
-        if (userIdResult.IsError)
-        {
-            _logger.LogWarning("SignOut failed: {Error}", userIdResult.FirstError.Description);
-            return userIdResult.Errors;
-        }
-
-        var userId = userIdResult.Value;
-
         var refreshTokens = await GetRefreshTokenForUserAsync(userId);
         await RevokeToken(refreshTokens);
+
+        await _jwtBlacklistService.BlacklistUserAsync(userId, TimeSpan.MaxValue);
 
         _logger.LogInformation("User with id {UserId} successfully signed out", userId);
         return new Empty();
@@ -237,23 +233,6 @@ public class AuthService : IAuthService
     private bool IsRefreshTokenStillFresh(RefreshTokenEntity refreshToken)
     {
         return refreshToken.ExpiresAt > DateTime.UtcNow.AddSeconds(_jwtServicesSettings.SecondsUntilExpireUserJwtToken);
-    }
-
-    private ErrorOr<int> ExtractUserIdFromContext(HttpContext? httpContext)
-    {
-        if (httpContext?.User?.Identity?.IsAuthenticated != true)
-        {
-            return Error.Unauthorized("Unauthorized access");
-        }
-
-        var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (!int.TryParse(userIdClaim, out var userId))
-        {
-            return Error.Unauthorized("Invalid user identifier");
-        }
-
-        return userId;
     }
 
     private async Task<List<RefreshTokenEntity>> GetRefreshTokenForUserAsync(int userId)

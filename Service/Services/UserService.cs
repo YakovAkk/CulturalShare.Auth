@@ -57,6 +57,14 @@ public class UserService : IUserService
             return Error.Conflict("You cannot follow yourself.");
         }
 
+        var userExists = _userRepository.GetAll().Any(u => u.Id == userId);
+        var restrictedUserExists = _userRepository.GetAll().Any(u => u.Id == request.FolloweeId);
+
+        if (!userExists && !restrictedUserExists)
+        {
+            return Error.Conflict("User doesn't exist.");
+        }
+
         var existingFollow = await _followerEntityRepository
             .GetAll()
             .FirstOrDefaultAsync(x => x.FollowerId == userId && x.FolloweeId == request.FolloweeId);
@@ -69,6 +77,7 @@ public class UserService : IUserService
             }
 
             existingFollow.Follow();
+            existingFollow.UpdatedAt = DateTime.UtcNow;
             _followerEntityRepository.Update(existingFollow);
         }
         else
@@ -124,6 +133,14 @@ public class UserService : IUserService
             return Error.Conflict("You cannot restrict yourself.");
         }
 
+        var userExists = _userRepository.GetAll().Any(u => u.Id == userId);
+        var restrictedUserExists = _userRepository.GetAll().Any(u => u.Id == request.UserIdToRestrict);
+
+        if (!userExists && !restrictedUserExists)
+        {
+            return Error.Conflict("User doesn't exist.");
+        }
+
         var restriction = await _restrictedUserEntityRepository
             .GetAll()
             .FirstOrDefaultAsync(x => x.UserId == userId && x.RestrictedUserId == request.UserIdToRestrict);
@@ -136,6 +153,7 @@ public class UserService : IUserService
             }
 
             restriction.Restrict();
+            restriction.UpdatedAt = DateTime.UtcNow;
             _restrictedUserEntityRepository.Update(restriction);
         }
         else
@@ -173,18 +191,25 @@ public class UserService : IUserService
     {
         _logger.LogInformation($"{nameof(ToggleNotificationsAsync)} request received");
 
+        var userExists = _userRepository.GetAll().Any(u => u.Id == userId);
+
+        if (!userExists)
+        {
+            return Error.Conflict("User doesn't exist.");
+        }
+
         var userSettings = await _userSettingsRepository
             .GetAll()
             .FirstOrDefaultAsync(x => x.UserId == userId);
 
         if (userSettings == null)
         {
-            userSettings = new UserSettingsEntity(request.Enable, userId);
+            userSettings = new UserSettingsEntity(request.NotificationsEnabled, userId);
             _userSettingsRepository.Add(userSettings);
         }
         else
         {
-            userSettings.NotificationsEnabled = request.Enable;
+            userSettings.NotificationsEnabled = request.NotificationsEnabled;
             _userSettingsRepository.Update(userSettings);
         }
 
@@ -192,5 +217,4 @@ public class UserService : IUserService
 
         return new Empty();
     }
-
 }

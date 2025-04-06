@@ -34,6 +34,7 @@ public class FollowerEntity : BaseEntity<int>
     {
         FollowerId = followerId;
         FolloweeId = followeeId;
+        Follow();
     }
 
     public void Unfollow()

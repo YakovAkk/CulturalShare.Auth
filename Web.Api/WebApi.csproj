@@ -14,9 +14,10 @@
 		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="8.0.1" />
 		<PackageReference Include="culturalshare.common.helper" Version="8.0.26-CUL-20-v2" />
 		<PackageReference Include="CulturalShare.Foundation.AspNetCore.Extensions" Version="8.0.0-CUL-20-v10" />
-		<PackageReference Include="CulturalShare.Foundation.Authorization" Version="8.0.0-CUL-20-v2" />
+		<PackageReference Include="CulturalShare.Foundation.Authorization" Version="8.0.0-CUL-20-v3" />
 		<PackageReference Include="CulturalShare.Foundation.EntironmentHelper" Version="8.0.0-CUL-20-v10" />
-		<PackageReference Include="CulturalShare.Protos" Version="8.0.9-CUL-20-v13" />
+		<PackageReference Include="CulturalShare.Protos" Version="8.0.9-CUL-20-v15" />
+		<PackageReference Include="MediatR" Version="12.5.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.5" />
 		<PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" Version="8.0.5" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.5" />
