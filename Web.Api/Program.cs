@@ -1,9 +1,9 @@
-using CulturalShare.Auth.API.Configuration.Base;
-using CulturalShare.Auth.API.DependencyInjection;
-using CulturalShare.Auth.Services;
+using Dependency.Infranstructure.Configuration.Base;
+using Dependency.Infranstructure.DependencyInjection;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
+using WebApi.GrpcServices;
 
 var builder = WebApplication.CreateBuilder(args);
 var logger = new LoggerConfiguration()
@@ -22,9 +22,10 @@ if (app.Environment.IsEnvironment("Test"))
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGrpcService<AuthenticationService>();
+app.MapGrpcService<AuthenticationGrpcService>();
+app.MapGrpcService<UserGrpcService>();
 
-app.MapHealthChecks("/_health", new HealthCheckOptions()
+app.MapHealthChecks("/health", new HealthCheckOptions()
 {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });

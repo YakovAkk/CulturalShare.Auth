@@ -1,0 +1,14 @@
+services:
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        GITHUB_USERNAME: ${GITHUB_USERNAME}
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+    environment:
+      - GITHUB_USERNAME=${GITHUB_USERNAME}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - ASPNETCORE_ENVIRONMENT=Test
+    ports:
+      - "8080:8080"

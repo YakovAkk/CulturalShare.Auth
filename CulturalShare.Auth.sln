@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34322.80
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{48840491-E862-4051-8268-B98639B02984}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Postgres.Infrastructure", "Infrastructure\Postgres.Infrastructure.csproj", "{48840491-E862-4051-8268-B98639B02984}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DomainEntity", "DomainEntity\DomainEntity.csproj", "{9E1DE385-71CF-4F4D-A254-89C98B0EF588}"
 EndProject
@@ -12,6 +12,18 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Service", "Service\Service.csproj", "{5026C516-FECF-4AC0-A121-B05C52B79BED}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApi", "Web.Api\WebApi.csproj", "{62EB29DC-BF2A-4070-8926-B78D2B0EC34D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Application", "Application", "{D8549C93-50D7-4BC2-A4B8-547FBDF0AA19}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{DC2C093A-B451-4022-8BB8-D9C91550E69B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructures", "Infrastructures", "{B7FB251F-E14C-44F2-8786-9235D26965FA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repositories.Infrastructure", "Repositories.Infrastructure\Repositories.Infrastructure.csproj", "{BA173BAB-3F8D-4D95-B0A9-2B20F365EF3F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dependency.Infranstructure", "Dependency.Infranstructure\Dependency.Infranstructure.csproj", "{0C7947C8-64D5-4052-9F6C-2C3645A0EDC6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,9 +51,26 @@ Global
 		{62EB29DC-BF2A-4070-8926-B78D2B0EC34D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{62EB29DC-BF2A-4070-8926-B78D2B0EC34D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{62EB29DC-BF2A-4070-8926-B78D2B0EC34D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA173BAB-3F8D-4D95-B0A9-2B20F365EF3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA173BAB-3F8D-4D95-B0A9-2B20F365EF3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA173BAB-3F8D-4D95-B0A9-2B20F365EF3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA173BAB-3F8D-4D95-B0A9-2B20F365EF3F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C7947C8-64D5-4052-9F6C-2C3645A0EDC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C7947C8-64D5-4052-9F6C-2C3645A0EDC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C7947C8-64D5-4052-9F6C-2C3645A0EDC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C7947C8-64D5-4052-9F6C-2C3645A0EDC6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{48840491-E862-4051-8268-B98639B02984} = {B7FB251F-E14C-44F2-8786-9235D26965FA}
+		{9E1DE385-71CF-4F4D-A254-89C98B0EF588} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{624B2283-4F7B-4C72-B7FE-C128E465BE1A} = {D8549C93-50D7-4BC2-A4B8-547FBDF0AA19}
+		{5026C516-FECF-4AC0-A121-B05C52B79BED} = {D8549C93-50D7-4BC2-A4B8-547FBDF0AA19}
+		{62EB29DC-BF2A-4070-8926-B78D2B0EC34D} = {DC2C093A-B451-4022-8BB8-D9C91550E69B}
+		{BA173BAB-3F8D-4D95-B0A9-2B20F365EF3F} = {B7FB251F-E14C-44F2-8786-9235D26965FA}
+		{0C7947C8-64D5-4052-9F6C-2C3645A0EDC6} = {B7FB251F-E14C-44F2-8786-9235D26965FA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {273E970B-42F7-4621-8B1C-44B8D9CF8350}

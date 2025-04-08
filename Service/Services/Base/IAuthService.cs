@@ -1,11 +1,14 @@
 ﻿using AuthenticationProto;
-using CulturalShare.Auth.Services.Model;
+using ErrorOr;
+using Google.Protobuf.WellKnownTypes;
+using Microsoft.AspNetCore.Http;
 
-namespace CulturalShare.Auth.Services.Services.Base;
+namespace Service.Services.Base;
 
 public interface IAuthService
 {
-    Task<int> CreateUserAsync(CreateUserRequest request);
-    Task<AccessKeyViewModel> GetAccessTokenAsync(LoginRequest request);
-    AccessKeyViewModel GetOneTimeTokenAsync(GetOneTimeTokenRequest request);
+    Task<ErrorOr<SignInResponse>> GetSignInAsync(SignInRequest request);
+    Task<ErrorOr<ServiceTokenResponse>> GetServiceTokenAsync(ServiceTokenRequest request);
+    Task<ErrorOr<RefreshTokenResponse>> RefreshTokenAsync(RefreshTokenRequest request, int userId);
+    Task<ErrorOr<Empty>> SignOutAsync(int userId);
 }

@@ -5,19 +5,19 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <UserSecretsId>08631675-6002-4b02-8c9b-33f368c3f9f5</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
-
-	<PropertyGroup>
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<NoWarn>$(NoWarn);1591</NoWarn>
-		<UserSecretsId>1071abf9-0651-4199-92dd-64c464274c0a</UserSecretsId>
-		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="8.0.1" />
 		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="8.0.1" />
-		<PackageReference Include="Grpc.AspNetCore" Version="2.63.0" />
+		<PackageReference Include="culturalshare.common.helper" Version="8.0.26" />
+		<PackageReference Include="CulturalShare.Foundation.AspNetCore.Extensions" Version="8.0.0" />
+		<PackageReference Include="CulturalShare.Foundation.Authorization" Version="8.0.0" />
+		<PackageReference Include="CulturalShare.Foundation.EntironmentHelper" Version="8.0.0" />
+		<PackageReference Include="CulturalShare.Protos" Version="8.0.9" />
+		<PackageReference Include="MediatR" Version="12.5.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.5" />
 		<PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" Version="8.0.5" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.5" />
@@ -27,18 +27,14 @@
 		</PackageReference>
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
-		<PackageReference Include="Serilog" Version="3.1.1" />
-		<PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
-		<PackageReference Include="Serilog.Enrichers.CorrelationId" Version="3.0.1" />
-		<PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
-		<PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
-		<PackageReference Include="Serilog.Sinks.Graylog" Version="3.1.1" />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.8" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+	  <ProjectReference Include="..\Dependency.Infranstructure\Dependency.Infranstructure.csproj" />
+	  <ProjectReference Include="..\Infrastructure\Postgres.Infrastructure.csproj" />
+	  <ProjectReference Include="..\Repositories.Infrastructure\Repositories.Infrastructure.csproj" />
 	  <ProjectReference Include="..\Service\Service.csproj" />
 	</ItemGroup>
 
