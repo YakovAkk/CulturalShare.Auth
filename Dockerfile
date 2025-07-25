@@ -14,6 +14,8 @@ ENV GITHUB_TOKEN=$GITHUB_TOKEN
 
 WORKDIR /src
 
+COPY Directory.Packages.props .
+
 # Copy nuget.config and set GitHub credentials
 COPY NuGet.Config .
 RUN sed -i "s/%GITHUB_USERNAME%/${GITHUB_USERNAME}/g" NuGet.Config
