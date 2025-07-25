@@ -10,25 +10,25 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
-		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
-		<PackageReference Include="culturalshare.common.helper" Version="9.0.0-CUL-20" />
-		<PackageReference Include="CulturalShare.Foundation.AspNetCore.Extensions" Version="9.0.0-CUL-20" />
-		<PackageReference Include="CulturalShare.Foundation.Authorization" Version="9.0.0-CUL-20" />
-		<PackageReference Include="CulturalShare.Foundation.EntironmentHelper" Version="9.0.0-CUL-20" />
-		<PackageReference Include="CulturalShare.Protos" Version="9.0.0-CUL-20" />
-		<PackageReference Include="MediatR" Version="12.5.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
-		<PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" Version="9.0.4" />
-		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.4">
+		<PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
+		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
+		<PackageReference Include="culturalshare.common.helper" />
+		<PackageReference Include="CulturalShare.Foundation.AspNetCore.Extensions" />
+		<PackageReference Include="CulturalShare.Foundation.Authorization" />
+		<PackageReference Include="CulturalShare.Foundation.EntironmentHelper" />
+		<PackageReference Include="CulturalShare.Protos" />
+		<PackageReference Include="MediatR" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+		<PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" >
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-		<PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.1" />
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
+		<PackageReference Include="Newtonsoft.Json" />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+		<PackageReference Include="Swashbuckle.AspNetCore" />
 	</ItemGroup>
 
 	<ItemGroup>

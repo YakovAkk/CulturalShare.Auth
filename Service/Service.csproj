@@ -7,18 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CulturalShare.Common.Helper" Version="9.0.0-CUL-20" />
-    <PackageReference Include="culturalshare.foundation.entironmenthelper" Version="9.0.0-CUL-20" />
-    <PackageReference Include="CulturalShare.Protos" Version="9.0.0-CUL-20" />
-    <PackageReference Include="CultureShare.Foundation.Exceptions" Version="9.0.0-CUL-20" />
-    <PackageReference Include="ErrorOr" Version="2.0.1" />
-    <PackageReference Include="MediatR" Version="12.5.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.4" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="StackExchange.Redis" Version="2.8.31" />
-	<PackageReference Include="CulturalShare.Foundation.Authorization" Version="9.0.0-CUL-20" />
-	<PackageReference Include="Grpc.AspNetCore" Version="2.70.0" />
-	<PackageReference Include="Riok.Mapperly" Version="4.2.0" ExcludeAssets="runtime" PrivateAssets="all">
+    <PackageReference Include="CulturalShare.Common.Helper" />
+    <PackageReference Include="culturalshare.foundation.entironmenthelper" />
+    <PackageReference Include="CulturalShare.Protos" />
+    <PackageReference Include="CultureShare.Foundation.Exceptions" />
+    <PackageReference Include="ErrorOr" />
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="StackExchange.Redis" />
+	<PackageReference Include="CulturalShare.Foundation.Authorization" />
+	<PackageReference Include="Grpc.AspNetCore" />
+	<PackageReference Include="Riok.Mapperly" ExcludeAssets="runtime" PrivateAssets="all">
 	  <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	</PackageReference>
   </ItemGroup>

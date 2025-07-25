@@ -18,10 +18,10 @@ public class AuthenticationServiceInstaller : IServiceInstaller
         builder.Services.AddSingleton(jwtSettings);
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                    .AddJwtBearer(options =>
-                    {
-                        JwtExtension.ConfigureJwtBearerOptions(options, jwtSettings);
-                    });
+                .AddJwtBearer(options =>
+                {
+                    JwtExtension.ConfigureJwtBearerOptions(options, jwtSettings);
+                });
 
         builder.Services.AddAuthorization();
 
