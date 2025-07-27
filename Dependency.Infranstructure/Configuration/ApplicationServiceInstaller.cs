@@ -20,7 +20,7 @@ public class ApplicationServiceInstaller : IServiceInstaller
         builder.Services.AddServices();
         builder.Services.AddRepositories();
 
-        builder.Services.AddValidatorsFromAssemblyContaining<CreateUserRequestValidator>();
+        builder.Services.AddValidatorsFromAssemblyContaining<RefreshTokenRequestValidator>();
 
         logger.Information($"{nameof(ApplicationServiceInstaller)} installed.");
     }

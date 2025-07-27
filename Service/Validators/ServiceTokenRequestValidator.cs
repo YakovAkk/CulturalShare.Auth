@@ -1,4 +1,5 @@
-﻿using AuthenticationProto;
+﻿using AuthenticationBackProto;
+using AuthenticationProto;
 using FluentValidation;
 
 namespace Service.Validators;

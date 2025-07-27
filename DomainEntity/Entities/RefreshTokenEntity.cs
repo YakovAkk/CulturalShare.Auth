@@ -11,12 +11,7 @@ public class RefreshTokenEntity : BaseEntity<int>
     public DateTime ExpiresAt { get; private set; }
     public DateTime? RevokedAt { get; private set; }
     public bool IsRevoked { get; private set; }
-
-    [ForeignKey(nameof(User))]
     public int UserId { get; set; }
-
-    [JsonIgnore]
-    public UserEntity User { get; set; }
 
     [NotMapped]
     public bool IsExpired => DateTime.UtcNow >= ExpiresAt;

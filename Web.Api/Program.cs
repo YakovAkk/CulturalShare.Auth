@@ -23,7 +23,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapGrpcService<AuthenticationGrpcService>();
-app.MapGrpcService<UserGrpcService>();
+app.MapGrpcService<AuthenticationBackGrpcService>();
 
 app.MapHealthChecks("/health", new HealthCheckOptions()
 {
