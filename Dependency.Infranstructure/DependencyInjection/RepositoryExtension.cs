@@ -8,11 +8,7 @@ public static class RepositoryExtension
 {
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
-        services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
-        services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
-        services.AddScoped<IFollowerEntityRepository, FollowerEntityRepository>();
-        services.AddScoped<IRestrictedUserEntityRepository, RestrictedUserEntityRepository>();
 
         return services;
     }

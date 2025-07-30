@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog.Core;
-using static Service.Handlers.MediatRCommands;
+using Service.Services.Handlers.Command;
 
 namespace Dependency.Infranstructure.Configuration;
 
@@ -13,7 +13,7 @@ public class MediatRServiceInstaller : IServiceInstaller
         builder.Services.AddMediatR(config =>
         {
             config.Lifetime = ServiceLifetime.Scoped;
-            config.RegisterServicesFromAssembly(typeof(CreateUserCommand).Assembly);
+            config.RegisterServicesFromAssembly(typeof(GetServiceTokenHandler).Assembly);
         });
 
         logger.Information($"{nameof(MediatRServiceInstaller)} installed.");

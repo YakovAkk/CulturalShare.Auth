@@ -1,4 +1,5 @@
-﻿using CulturalShare.Foundation.EntironmentHelper.Configurations;
+﻿using AuthenticationBackProto;
+using CulturalShare.Foundation.EnvironmentHelper.Configurations;
 using DomainEntity.Configuration;
 using DomainEntity.Entities;
 using Microsoft.Extensions.Logging;
@@ -41,9 +42,9 @@ public class TokenService : ITokenService
         return Task.FromResult(accessTokenViewModel);
     }
 
-    public Task<AccessTokenViewModel> CreateAccessTokenForUserAsync(JwtServiceCredentials jwtServiceCredentials, UserEntity user)
+    public Task<AccessTokenViewModel> CreateAccessTokenForUserAsync(JwtServiceCredentials jwtServiceCredentials, UserTokenRequest user)
     {
-        _logger.LogDebug($"{nameof(CreateAccessTokenForUserAsync)} request. User Id = {user.Id}");
+        _logger.LogDebug($"{nameof(CreateAccessTokenForUserAsync)} request. User Id = {user.UserId}");
 
         var accessToken = CreateAccessTokenForUserInternal(jwtServiceCredentials, user);
         var token = new JwtSecurityTokenHandler().WriteToken(accessToken);
@@ -53,11 +54,11 @@ public class TokenService : ITokenService
         return Task.FromResult(accessTokenViewModel);
     }
 
-    public async Task<AccessAndRefreshTokenViewModel> CreateAccessAndRefreshTokensForUserAsync(JwtServiceCredentials jwtServiceCredentials, UserEntity user)
+    public async Task<AccessAndRefreshTokenViewModel> CreateAccessAndRefreshTokensForUserAsync(JwtServiceCredentials jwtServiceCredentials, UserTokenRequest user)
     {
-        _logger.LogDebug($"{nameof(CreateAccessAndRefreshTokensForUserAsync)} request. User Id = {user.Id}");
+        _logger.LogDebug($"{nameof(CreateAccessAndRefreshTokensForUserAsync)} request. User Id = {user.UserId}");
 
-        var refreshTokenTask = CreateRefreshToken(_jwtServicesSettings.SecondsUntilExpireUserRefreshToken, user.Id);
+        var refreshTokenTask = CreateRefreshToken(_jwtServicesSettings.SecondsUntilExpireUserRefreshToken, user.UserId);
         var accessTokenTask = CreateAccessTokenForUserAsync(jwtServiceCredentials, user);
 
         await Task.WhenAll(refreshTokenTask, accessTokenTask);
@@ -87,14 +88,14 @@ public class TokenService : ITokenService
         return new RefreshToken(refreshToken.Token, refreshToken.ExpiresAt);
     }
 
-    private JwtSecurityToken CreateAccessTokenForUserInternal(JwtServiceCredentials jwtServiceCredentials, UserEntity user)
+    private JwtSecurityToken CreateAccessTokenForUserInternal(JwtServiceCredentials jwtServiceCredentials, UserTokenRequest user)
     {
         var expiresAt = DateTime.UtcNow.AddSeconds(_jwtServicesSettings.SecondsUntilExpireUserJwtToken);
 
         var claims = new List<Claim>()
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email)
+            new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+            new Claim(ClaimTypes.Email, user.Email),
         };
 
         var token = CreateJwtSecurityToken(jwtServiceCredentials, expiresAt, claims);
@@ -106,15 +107,24 @@ public class TokenService : ITokenService
     {
         var expiresAt = DateTime.UtcNow.AddSeconds(_jwtServicesSettings.SecondsUntilExpireServiceJwtToken);
 
+        var serviceConfig = _jwtServicesSettings.ServicesJwtConfigs
+            .FirstOrDefault(x => x.ServiceId == jwtServiceCredentials.ServiceId);
+
+        if (serviceConfig == null)
+        {
+            var message = $"Service with Id '{jwtServiceCredentials.ServiceId}' not found in configuration.";
+            _logger.LogError(message);
+            throw new InvalidOperationException(message);
+        }
+
         var claims = new List<Claim>
         {
+            new Claim(ClaimTypes.Role, serviceConfig.ServiceRole),
             new Claim(JwtRegisteredClaimNames.Sub, jwtServiceCredentials.ServiceId),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-        var token = CreateJwtSecurityToken(jwtServiceCredentials, expiresAt, claims);
-
-        return token;
+        return CreateJwtSecurityToken(jwtServiceCredentials, expiresAt, claims);
     }
 
     private JwtSecurityToken CreateJwtSecurityToken(JwtServiceCredentials jwtServiceCredentials, DateTime expiresAt, List<Claim> claims)
@@ -127,7 +137,7 @@ public class TokenService : ITokenService
             audience: jwtServiceCredentials.ServiceId,
             claims: claims,
             expires: expiresAt,
-            signingCredentials: credentials
+            signingCredentials: credentials            
         );
         return token;
     }

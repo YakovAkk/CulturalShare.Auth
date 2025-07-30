@@ -1,4 +1,4 @@
-﻿using CulturalShare.Foundation.EntironmentHelper.EnvHelpers;
+﻿using CulturalShare.Foundation.EnvironmentHelper.EnvHelpers;
 using Dependency.Infranstructure.Configuration.Base;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;

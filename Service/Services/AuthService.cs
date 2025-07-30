@@ -1,12 +1,12 @@
-﻿using AuthenticationProto;
+﻿using AuthenticationBackProto;
+using AuthenticationProto;
 using CulturalShare.Foundation.Authorization.JwtServices;
-using CulturalShare.Foundation.EntironmentHelper.Configurations;
+using CulturalShare.Foundation.EnvironmentHelper.Configurations;
 using DomainEntity.Configuration;
 using DomainEntity.Constants;
 using DomainEntity.Entities;
 using ErrorOr;
 using Google.Protobuf.WellKnownTypes;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Repository.Repositories;
@@ -19,69 +19,49 @@ namespace Service.Services;
 public class AuthService : IAuthService
 {
     private readonly ILogger<AuthService> _logger;
-    private readonly IPasswordService _passwordService;
     private readonly ITokenService _tokenService;
     private readonly JwtServicesConfig _jwtServicesSettings;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
-    private readonly IUserRepository _userRepository;
     private readonly IJwtBlacklistService _jwtBlacklistService;
 
     public AuthService(
-        IPasswordService passwordService,
         ILogger<AuthService> logger,
         ITokenService tokenService,
         JwtServicesConfig jwtServicesSettings,
-        IUserRepository userRepository,
         IRefreshTokenRepository refreshTokenRepository,
         IJwtBlacklistService jwtBlacklistService)
     {
-        _passwordService = passwordService;
         _logger = logger;
         _tokenService = tokenService;
         _jwtServicesSettings = jwtServicesSettings;
-        _userRepository = userRepository;
         _refreshTokenRepository = refreshTokenRepository;
         _jwtBlacklistService = jwtBlacklistService;
     }
 
-    public async Task<ErrorOr<SignInResponse>> GetSignInAsync(SignInRequest request)
+    public async Task<ErrorOr<UserTokenResponse>> GenerateUserTokenAsync(UserTokenRequest request)
     {
-        var user = await _userRepository
-            .GetAll()
-            .FirstOrDefaultAsync(x => x.Email == request.Email);
-
-        if (user == null)
-        {
-            _logger.LogError($"{nameof(GetSignInAsync)} request. User with email = {request.Email} doesn't exist!");
-            return Error.NotFound("UserNotFound", $"User with email = {request.Email} doesn't exist!");
-        }
-
-        var isPasswordValid = _passwordService.VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt);
-
-        if (!isPasswordValid)
-        {
-            _logger.LogDebug($"Invalid login attempt for user with email = {user.Email}");
-            return Error.Validation("InvalidCredentials", "Email or password is incorrect.");
-        }
-
         var jwtCredentialsResult = GetJwtCredentials(JwtTokenConstants.UserAudience);
+
         if (jwtCredentialsResult.IsError)
         {
-            _logger.LogError("JWT credentials missing for service audience");
+            _logger.LogError("JWT credentials missing for user audience");
             return jwtCredentialsResult.Errors;
         }
 
-        var jwtServiceCredentials = jwtCredentialsResult.Value;
+        var credentials = jwtCredentialsResult.Value;
 
-        var accessTokenViewModel = await _tokenService.CreateAccessAndRefreshTokensForUserAsync(jwtServiceCredentials, user);
+        var accessRefreshTokenPair = await _tokenService.CreateAccessAndRefreshTokensForUserAsync(credentials, request);
 
-        await _jwtBlacklistService.RemoveUserFromBlacklistAsync(user.Id);
+        await _jwtBlacklistService.RemoveUserFromBlacklistAsync(request.UserId.ToString());
 
-        var signInResponse = accessTokenViewModel.ToSignInResponse();
-
-        return signInResponse;
+        return new UserTokenResponse()
+        {
+            AccessToken = accessRefreshTokenPair.AccessToken,
+            AccessTokenExpiresInSeconds = (int)(accessRefreshTokenPair.AccessTokenExpiresAt - DateTime.UtcNow).TotalSeconds,
+            RefreshToken = accessRefreshTokenPair.RefreshToken,
+            RefreshTokenExpiresInSeconds = (int)(accessRefreshTokenPair.RefreshTokenExpiresAt - DateTime.UtcNow).TotalSeconds
+        };
     }
-
 
     public async Task<ErrorOr<ServiceTokenResponse>> GetServiceTokenAsync(ServiceTokenRequest request)
     {
@@ -124,14 +104,7 @@ public class AuthService : IAuthService
             return jwtCredentialsResult.Errors;
         }
 
-        var userResult = await GetUserByIdAsync(userId);
-        if (userResult.IsError)
-        {
-            _logger.LogError("User not found for refresh token: {UserId}", userId);
-            return userResult.Errors;
-        }
-
-        var user = userResult.Value;
+        var user = request.User;
         var credentials = jwtCredentialsResult.Value;
 
         // if refresh token is still valid for another access token
@@ -145,14 +118,14 @@ public class AuthService : IAuthService
         return GetAccessTokenWithNewRefresh(accessRefreshTokenPair);
     }
 
-    public async Task<ErrorOr<Empty>> SignOutAsync(int userId)
+    public async Task<ErrorOr<Empty>> RevokeUserTokenAsync(int userId)
     {
         _logger.LogInformation("SignOut request received");
 
         var refreshTokens = await GetRefreshTokenForUserAsync(userId);
         await RevokeToken(refreshTokens);
 
-        await _jwtBlacklistService.BlacklistUserAsync(userId, TimeSpan.MaxValue);
+        await _jwtBlacklistService.BlacklistUserAsync(userId.ToString(), TimeSpan.MaxValue);
 
         _logger.LogInformation("User with id {UserId} successfully signed out", userId);
         return new Empty();
@@ -203,31 +176,19 @@ public class AuthService : IAuthService
 
     private ErrorOr<JwtServiceCredentials> GetJwtCredentials(string audience)
     {
-        if (!_jwtServicesSettings.JwtSecretTokenPairs.TryGetValue(audience, out var secret))
+        var serviceConfig = _jwtServicesSettings.ServicesJwtConfigs
+            .FirstOrDefault(x => x.ServiceId == audience);
+
+        if (serviceConfig == null || string.IsNullOrWhiteSpace(serviceConfig.ServiceSecret))
         {
             return Error.Unauthorized("JwtConfig.MissingSecret", "JWT secret for user audience is not configured.");
         }
 
         return new JwtServiceCredentials
         {
-            ServiceId = JwtTokenConstants.UserAudience,
-            ServiceSecret = secret
+            ServiceId = audience,
+            ServiceSecret = serviceConfig.ServiceSecret
         };
-    }
-
-    private async Task<ErrorOr<UserEntity>> GetUserByIdAsync(int userId)
-    {
-        var user = await _userRepository
-            .GetAll()
-            .FirstOrDefaultAsync(x => x.Id == userId);
-
-        if (user == null)
-        {
-            _logger.LogError($"{nameof(GetUserByIdAsync)} request. User with Id = {userId} doesn't exist!");
-            return Error.NotFound("User.NotFound", $"User with Id = {userId} doesn't exist.");
-        }
-
-        return user;
     }
 
     private bool IsRefreshTokenStillFresh(RefreshTokenEntity refreshToken)
