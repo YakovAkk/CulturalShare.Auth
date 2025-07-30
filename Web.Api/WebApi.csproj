@@ -15,13 +15,12 @@
 		<PackageReference Include="culturalshare.common.helper" />
 		<PackageReference Include="CulturalShare.Foundation.AspNetCore.Extensions" />
 		<PackageReference Include="CulturalShare.Foundation.Authorization" />
-		<PackageReference Include="CulturalShare.Foundation.EntironmentHelper" />
 		<PackageReference Include="CulturalShare.Protos" />
 		<PackageReference Include="MediatR" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
 		<PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" >
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>

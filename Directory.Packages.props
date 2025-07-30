@@ -8,9 +8,10 @@
     <PackageVersion Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
     <PackageVersion Include="CulturalShare.Common.Helper" Version="9.0.0" />
     <PackageVersion Include="CulturalShare.Database.Entities" Version="9.0.0" />
-    <PackageVersion Include="CulturalShare.Foundation.AspNetCore.Extensions" Version="9.0.0" />
-    <PackageVersion Include="CulturalShare.Foundation.Authorization" Version="9.0.1-CUL-23-v7" />
-    <PackageVersion Include="CulturalShare.Foundation.EntironmentHelper" Version="9.0.1-CUL-23-v3" />
+    <PackageVersion Include="CulturalShare.Foundation.AspNetCore.Extensions" Version="9.0.1-CUL-23-v2" />
+    <PackageVersion Include="CulturalShare.Foundation.Authorization" Version="9.0.1-CUL-23-v11" />
+    <PackageVersion Include="CulturalShare.Foundation.EntironmentHelper" Version="9.0.1-CUL-23-v5" />
+    <PackageVersion Include="CulturalShare.Foundation.EnvironmentHelper" Version="9.0.0-CUL-23-v3" />
     <PackageVersion Include="CulturalShare.Protos" Version="9.0.1-CUL-23-v4" />
     <PackageVersion Include="CulturalShare.Repositories" Version="9.0.0" />
     <PackageVersion Include="CultureShare.Foundation.Exceptions" Version="9.0.0" />

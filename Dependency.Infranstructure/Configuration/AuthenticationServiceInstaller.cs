@@ -1,5 +1,5 @@
 ﻿using CulturalShare.Foundation.Authorization.AuthenticationExtension;
-using CulturalShare.Foundation.EntironmentHelper.EnvHelpers;
+using CulturalShare.Foundation.EnvironmentHelper.EnvHelpers;
 using Dependency.Infranstructure.Configuration.Base;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;

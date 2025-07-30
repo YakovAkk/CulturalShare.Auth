@@ -12,10 +12,10 @@ namespace WebApi.GrpcServices;
 public class AuthenticationBackGrpcService : AuthenticationBackProto.AuthenticationBackGrpcService.AuthenticationBackGrpcServiceBase
 {
     private readonly IMediator _mediator;
-    private readonly ILogger<AuthenticationGrpcService> _logger;
+    private readonly ILogger<AuthenticationBackGrpcService> _logger;
 
     public AuthenticationBackGrpcService(
-        ILogger<AuthenticationGrpcService> log,
+        ILogger<AuthenticationBackGrpcService> log,
         IMediator mediator)
     {
         _logger = log;

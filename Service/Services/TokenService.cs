@@ -1,5 +1,5 @@
 ﻿using AuthenticationBackProto;
-using CulturalShare.Foundation.EntironmentHelper.Configurations;
+using CulturalShare.Foundation.EnvironmentHelper.Configurations;
 using DomainEntity.Configuration;
 using DomainEntity.Entities;
 using Microsoft.Extensions.Logging;

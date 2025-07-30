@@ -1,7 +1,7 @@
 ﻿using AuthenticationBackProto;
 using AuthenticationProto;
 using CulturalShare.Foundation.Authorization.JwtServices;
-using CulturalShare.Foundation.EntironmentHelper.Configurations;
+using CulturalShare.Foundation.EnvironmentHelper.Configurations;
 using DomainEntity.Configuration;
 using DomainEntity.Constants;
 using DomainEntity.Entities;
@@ -52,7 +52,7 @@ public class AuthService : IAuthService
 
         var accessRefreshTokenPair = await _tokenService.CreateAccessAndRefreshTokensForUserAsync(credentials, request);
 
-        await _jwtBlacklistService.RemoveUserFromBlacklistAsync(request.UserId);
+        await _jwtBlacklistService.RemoveUserFromBlacklistAsync(request.UserId.ToString());
 
         return new UserTokenResponse()
         {
@@ -125,7 +125,7 @@ public class AuthService : IAuthService
         var refreshTokens = await GetRefreshTokenForUserAsync(userId);
         await RevokeToken(refreshTokens);
 
-        await _jwtBlacklistService.BlacklistUserAsync(userId, TimeSpan.MaxValue);
+        await _jwtBlacklistService.BlacklistUserAsync(userId.ToString(), TimeSpan.MaxValue);
 
         _logger.LogInformation("User with id {UserId} successfully signed out", userId);
         return new Empty();
